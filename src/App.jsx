@@ -8,12 +8,12 @@ import ProjectsSection from './components/Home/ProjectsSection';
 import CompanyValuesSection from './components/Home/CompanyValuesSection';
 import TestimonialCarousel from './components/Home/TestimonialCarousel';
 import Footer from './components/Home/Footer';
+import HeroCarouselCrud from './components/Admin/HomeSectionCrud/HeroCarouselCrud';
 
 import AdminLoginPage from './components/Admin/AdminLoginPage';
 import AdminRegisterPage from './components/Admin/AdminRegisterPage';
 import AdminVerifyOtpPage from './components/Admin/AdminVerifyOtpPage';
 import AdminDashboard from './components/Admin/AdminDashboard';
-import HomeSectionCrud from './components/Admin/HomeSectionCrud';
 
 import ProtectedRoute from './components/Admin/ProtectedRoute';
 
@@ -89,13 +89,14 @@ useEffect(() => {
           </>
         )}
 
-        {/* 🛡️ Protected Admin Pages */}
-        {/* {isAuthenticated && (
-          <>
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/home/crud" element={<HomeSectionCrud />} />
-          </>
-        )} */}
+<Route
+  path="/admin/home/crud"
+  element={
+    <ProtectedRoute>
+      <HeroCarouselCrud />
+    </ProtectedRoute>
+  }
+/>
 
 <Route
   path="/admin/dashboard"
