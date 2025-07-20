@@ -1,45 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const values = [
-  {
-    title: 'Our Culture',
-    description:
-      'At HPR Infra, our culture is not just a reflection of who we are today, but a compass guiding us towards an inspiring future.',
-    leftImage: '/proof-culture.jpg',
-  },
-  {
-    title: 'Professional Service',
-    description:
-      'Our in-house team ensures best-in-class construction, delivered by experienced experts for complete execution.',
-    leftImage: '/proof-service.jpg',
-  },
-  {
-    title: 'Quality Assurance',
-    description:
-      'Be ensured that with us, you have the right quality for the right price — no overcharging or compromise.',
-    leftImage: '/proof-quality.jpg',
-  },
-  {
-    title: '100% Transparency',
-    description:
-      'Every detail is shared transparently. No hidden charges. We build with honesty as our core.',
-    leftImage: '/proof-transparency.jpg',
-  },
-  {
-    title: 'Insured Work',
-    description:
-      'Your structure is insured with us. For any issues post-handover, we’ve got your back.',
-    leftImage: '/proof-insured.jpg',
-  },
-  {
-    title: 'Future Driven',
-    description:
-      'We constantly innovate and evolve to meet the needs of the modern world. We don’t just build today — we prepare for tomorrow.',
-    leftImage: '/proof-culture.jpg',
-  }
-];
+const API = import.meta.env.VITE_API_BASE_URL + '/home/company-values';
 
 const CompanyValuesSection = () => {
+  const [values, setValues] = useState([]);
+
+  const fetchValues = async () => {
+    try {
+      const res = await axios.get(API);
+      setValues(res.data.data);
+    } catch (err) {
+      console.error('Error fetching company values:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchValues();
+  }, []);
+
   return (
     <section className="bg-gradient-to-b from-[#f9f9f9] to-white py-20 px-6 md:px-12">
       <div className="max-w-7xl mx-auto">
@@ -50,14 +29,14 @@ const CompanyValuesSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           {values.map((item, index) => (
             <div
-              key={index}
+              key={item.id}
               className={`flex flex-col md:flex-row ${
                 index % 2 !== 0 ? 'md:flex-row-reverse' : ''
               } bg-white rounded-2xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden`}
             >
               <div className="md:w-1/2 w-full h-64 md:h-auto">
                 <img
-                  src={item.leftImage}
+                  src={`data:image/jpeg;base64,${item.image}`}
                   alt={item.title}
                   className="w-full h-full object-cover"
                 />

@@ -23,15 +23,24 @@ const Navbar = () => {
 
         {/* Main Navigation */}
         <nav className="hidden md:flex space-x-10">
-          {["Home", "About Us", "Projects", "Gallery", "News & Updates", "Contact Us"].map((text, idx) => (
-            <Link
-              key={idx}
-              to={`/#${text.toLowerCase().replace(/\s+/g, '-')}`} // anchor links
-              className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline"
-            >
-              {text}
-            </Link>
-          ))}
+          <Link to="/" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+            Home
+          </Link>
+          <Link to="/about" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+            About Us
+          </Link>
+          <Link to="/#projects" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+            Projects
+          </Link>
+          <Link to="/#gallery" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+            Gallery
+          </Link>
+          <Link to="/#news-updates" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+            News & Updates
+          </Link>
+          <Link to="/#contact-us" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+            Contact Us
+          </Link>
         </nav>
 
         {/* Admin Control Buttons */}

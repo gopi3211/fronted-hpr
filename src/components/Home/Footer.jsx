@@ -1,43 +1,75 @@
-import React from 'react';
+// ✅ Footer.jsx
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
 
+const API = import.meta.env.VITE_API_BASE_URL + '/home/footer';
+
 const Footer = () => {
+  const [footer, setFooter] = useState(null);
+
+  const fetchFooter = async () => {
+    try {
+      const res = await axios.get(API);
+      if (res.data && res.data.data) {
+setFooter(res.data.data[0]); // ✅ since the backend sends array
+      }
+    } catch (err) {
+      console.error('Footer fetch failed:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchFooter();
+  }, []);
+
+if (!footer) return <footer className="bg-black text-white text-center py-8">Loading footer...</footer>;
+
   return (
     <footer className="bg-gradient-to-tr from-[#2B2E4A] to-[#1E202E] text-white pt-16 pb-8 px-6 md:px-20 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 border-b border-gray-600 pb-10">
-
         {/* Logo and tagline */}
         <div className="flex flex-col items-start">
-          <img src="/logo.png" alt="HPR Infra" className="h-16 mb-4" />
-          <p className="text-gray-400 text-sm">
-            HPR Infra — Building tomorrow’s legacy today with trust and innovation.
-          </p>
+          {footer.logo && (
+            <img
+              src={`data:image/png;base64,${footer.logo}`}
+              alt="HPR Infra Logo"
+              className="h-16 mb-4"
+            />
+          )}
+          <p className="text-gray-400 text-sm">{footer.tagline}</p>
         </div>
 
         {/* Address */}
         <div>
           <h4 className="text-lg font-semibold mb-3">Address</h4>
-          <p className="text-gray-300 text-sm leading-6">
-            101, Silicon Towers,<br />
-            Image Garden Road,<br />
-            Madhapur, Hyderabad - 500081
+          <p className="text-gray-300 text-sm leading-6 whitespace-pre-line">
+            {footer.address}
           </p>
         </div>
 
-        {/* Contact Info */}
+        {/* Contact */}
         <div>
           <h4 className="text-lg font-semibold mb-3">Contact</h4>
-          <p className="text-gray-300 text-sm">📞 040-40036841</p>
-          <p className="text-gray-300 text-sm">📧 <a href="mailto:hprinfrallp@gmail.com" className="hover:text-white underline">hprinfrallp@gmail.com</a></p>
+          <p className="text-gray-300 text-sm">📞 {footer.phone}</p>
+          <p className="text-gray-300 text-sm">
+            📧 <a href={`mailto:${footer.email}`} className="hover:text-white underline">{footer.email}</a>
+          </p>
         </div>
 
-        {/* Social */}
+        {/* Social Links */}
         <div>
           <h4 className="text-lg font-semibold mb-3">Connect With Us</h4>
           <div className="flex space-x-4 text-xl">
-            <a href="#" className="hover:text-[#56CCF2] transition"><FaFacebookF /></a>
-            <a href="#" className="hover:text-[#E1306C] transition"><FaInstagram /></a>
-            <a href="#" className="hover:text-[#0e76a8] transition"><FaLinkedinIn /></a>
+            <a href={footer.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-[#56CCF2] transition">
+              <FaFacebookF />
+            </a>
+            <a href={footer.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-[#E1306C] transition">
+              <FaInstagram />
+            </a>
+            <a href={footer.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-[#0e76a8] transition">
+              <FaLinkedinIn />
+            </a>
           </div>
         </div>
       </div>

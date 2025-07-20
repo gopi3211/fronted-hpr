@@ -1,30 +1,42 @@
-// src/components/HeroCarousel.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 
-const slides = [
-  {
-    image: "/hero1.jpg",
-    heading: "Your Dream Home Awaits",
-    subheading: "Discover premium properties tailored to your needs.",
-  },
-  {
-    image: "/hero2.jpg",
-    heading: "Trusted Real Estate Experts",
-    subheading: "Delivering excellence in Hyderabad for over a decade.",
-  },
-  {
-    image: "/hero3.jpg",
-    heading: "Invest Smart, Live Better",
-    subheading: "Secure your future with prime real estate locations.",
-  },
-];
-
 const HeroCarousel = () => {
+  const [slides, setSlides] = useState([]);
+  const API = import.meta.env.VITE_API_BASE_URL + "/hero-carousel";
+
+  useEffect(() => {
+    const fetchSlides = async () => {
+      try {
+        const res = await axios.get(API);
+        const formatted = res.data?.data?.map((slide) => ({
+          heading: slide.heading,
+          subheading: slide.subheading,
+          image: `data:image/jpeg;base64,${btoa(
+            new Uint8Array(slide.image.data).reduce(
+              (data, byte) => data + String.fromCharCode(byte),
+              ""
+            )
+          )}`,
+        })) || [];
+        setSlides(formatted);
+      } catch (err) {
+        console.error("Error fetching slides", err);
+      }
+    };
+
+    fetchSlides();
+  }, []);
+
+  if (slides.length === 0) {
+    return <div className="text-center py-32 text-xl">Loading hero section...</div>;
+  }
+
   return (
     <div className="w-full h-[100vh] relative">
       <Swiper

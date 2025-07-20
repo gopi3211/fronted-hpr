@@ -7,12 +7,15 @@ const AdminDashboard = () => {
 const sections = [
   { name: 'Home Section', path: '/admin/home/crud' },
   { name: 'About Us Section', path: '/admin/about' },
+  { name: 'About Us Subsections', path: '/admin/about/subsections' },
   { name: 'Projects Section', path: '/admin/projects' },
   { name: 'Gallery Section', path: '/admin/gallery' },
   { name: 'News & Updates', path: '/admin/news' },
   { name: 'Contact Us', path: '/admin/contact' },
   { name: 'User Management', path: '/admin/users' },
+  { name: 'Our Partners', path: '/admin/partners' }, // ✅ ADD THIS LINE
 ];
+
 
 
   return (
