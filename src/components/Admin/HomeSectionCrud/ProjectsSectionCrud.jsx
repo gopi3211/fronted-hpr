@@ -39,9 +39,10 @@ const ProjectsSectionCrud = () => {
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
-    if (image instanceof File) {
-      formData.append('image', image);
-    }
+if (image) {
+  formData.append('image', image);
+}
+
 
     try {
       if (editingId) {

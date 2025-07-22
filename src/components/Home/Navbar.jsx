@@ -29,7 +29,7 @@ const Navbar = () => {
           <Link to="/about" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
             About Us
           </Link>
-          <Link to="/#projects" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+          <Link to="/projects" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
             Projects
           </Link>
           <Link to="/#gallery" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">

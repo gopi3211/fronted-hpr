@@ -30,6 +30,12 @@ import AboutUsPageCrud from './components/Admin/HomeSectionCrud/AboutUsPageCrud'
 import AboutUsSubsectionCrud from './components/Admin/HomeSectionCrud/AboutUsSubsectionCrud';
 import PartnersCrud from './components/Admin/HomeSectionCrud/PartnersCrud';
 
+
+import HPRProjectsPublicPage from "./components/Public/HPRProjectsPublicPage";
+import ProjectDetailsPage from "./components/Public/ProjectDetailsPage";
+import HPRProjectsCrudPage from "./components/Admin/HomeSectionCrud/HPRProjectsCrudPage";
+
+
 // // Optional placeholders
 // const AboutUsSection = () => (
 //   <div className="text-center py-20 bg-white" id="about-us">
@@ -97,7 +103,9 @@ function App() {
 
   <Route path="/about" element={<AboutUsPage />} />
 
+<Route path="/projects" element={<HPRProjectsPublicPage />} />
 
+<Route path="/project-details/:id" element={<ProjectDetailsPage />} />
 
         {/* 🔐 Auth Pages (Only when NOT logged in) */}
         {!isAuthenticated && (
@@ -154,6 +162,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+<Route
+  path="/admin/projects"
+  element={
+    <ProtectedRoute>
+      <HPRProjectsCrudPage />
+    </ProtectedRoute>
+  }
+/>
+
 
 
 <Route
