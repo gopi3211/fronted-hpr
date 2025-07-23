@@ -36,6 +36,9 @@ import ProjectDetailsPage from "./components/Public/ProjectDetailsPage";
 import HPRProjectsCrudPage from "./components/Admin/HomeSectionCrud/HPRProjectsCrudPage";
 
 
+import GalleryPage from './components/Public/GalleryPage';
+
+
 // // Optional placeholders
 // const AboutUsSection = () => (
 //   <div className="text-center py-20 bg-white" id="about-us">
@@ -106,6 +109,7 @@ function App() {
 <Route path="/projects" element={<HPRProjectsPublicPage />} />
 
 <Route path="/project-details/:id" element={<ProjectDetailsPage />} />
+<Route path="/gallery" element={<GalleryPage />} />
 
         {/* 🔐 Auth Pages (Only when NOT logged in) */}
         {!isAuthenticated && (

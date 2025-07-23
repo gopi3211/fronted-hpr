@@ -32,9 +32,10 @@ const Navbar = () => {
           <Link to="/projects" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
             Projects
           </Link>
-          <Link to="/#gallery" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
-            Gallery
-          </Link>
+         <Link to="/gallery" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+  Gallery
+</Link>
+
           <Link to="/#news-updates" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
             News & Updates
           </Link>

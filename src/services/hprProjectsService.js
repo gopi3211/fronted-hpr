@@ -30,8 +30,8 @@ export const deletePlan = (id) => axiosInstance.delete(`/hpr-projects/plan/${id}
 
 
 // -------------------- LOCATION --------------------
-export const addLocation = (projectId, data) =>
-  axiosInstance.post(`/hpr-projects/location/${projectId}`, data);
+export const addLocation = (data) =>
+  axiosInstance.post(`/hpr-projects/location`, data);
 
 export const getLocationByProjectId = (projectId) =>
   axiosInstance.get(`/hpr-projects/location/${projectId}`);
@@ -44,8 +44,7 @@ export const deleteLocation = (id) =>
 
 
 
-// -------------------- AMENITIES TAB --------------------
-export const addAmenities = (data) => axiosInstance.post(`/hpr-projects/amenities`, data);
+export const createAmenities = (data) => axiosInstance.post(`/hpr-projects/amenities`, data);
 export const getAmenitiesByProjectId = (projectId) => axiosInstance.get(`/hpr-projects/amenities/${projectId}`);
 export const updateAmenities = (id, data) => axiosInstance.put(`/hpr-projects/amenities/${id}`, data);
 export const deleteAmenities = (id) => axiosInstance.delete(`/hpr-projects/amenities/${id}`);

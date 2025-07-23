@@ -18,14 +18,19 @@ const FooterCrud = () => {
   });
   const [editingId, setEditingId] = useState(null);
 
-  const fetchFooter = async () => {
-    try {
-      const res = await axios.get(API);
-      setFooter(res.data.data ? [res.data.data] : []);
-    } catch (err) {
-      console.error("Fetch error:", err);
+const fetchFooter = async () => {
+  try {
+    const res = await axios.get(API);
+    if (res.data && res.data.data) {
+      setFooter([res.data.data]);
+      setForm({ ...res.data.data, logo: null });
+      setEditingId(res.data.data.id); // ✅ set the correct ID
     }
-  };
+  } catch (err) {
+    console.error("Fetch error:", err);
+  }
+};
+
 
   useEffect(() => {
     fetchFooter();
@@ -39,34 +44,44 @@ const FooterCrud = () => {
     setForm({ ...form, logo: e.target.files[0] });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-      Object.keys(form).forEach((key) => formData.append(key, form[key]));
 
-      if (editingId) {
-        await axios.put(`${API}/${editingId}`, formData);
-      } else {
-        await axios.post(API, formData);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const formData = new FormData();
+    Object.keys(form).forEach((key) => {
+      if (key === "logo" && form.logo) {
+        formData.append("logo", form.logo);
+      } else if (key !== "logo") {
+        formData.append(key, form[key]);
       }
+    });
 
-      setForm({
-        tagline: "",
-        address: "",
-        phone: "",
-        email: "",
-        facebook: "",
-        instagram: "",
-        linkedin: "",
-        logo: null
-      });
-      setEditingId(null);
-      fetchFooter();
-    } catch (err) {
-      console.error("Submit error:", err);
+    if (editingId) {
+      await axios.put(`${API}/${editingId}`, formData);
+    } else {
+      await axios.post(API, formData);
     }
-  };
+
+    setForm({
+      tagline: "",
+      address: "",
+      phone: "",
+      email: "",
+      facebook: "",
+      instagram: "",
+      linkedin: "",
+      logo: null,
+    });
+    setEditingId(null);
+    fetchFooter();
+  } catch (err) {
+    console.error("Submit error:", err);
+  }
+};
+
+
+
 
   const handleEdit = (item) => {
     setForm({ ...item, logo: null });

@@ -25,22 +25,26 @@ const ProjectLocationCrud = ({ projectId }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const payload = { ...form };
-
-    try {
-      if (editingId) {
-        await updateLocation(editingId, payload);
-      } else {
-        await addLocation(projectId, payload);
-      }
-      resetForm();
-      fetchLocations();
-    } catch (err) {
-      console.error('Submit error:', err);
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const payload = {
+    project_id: projectId,
+    iframe_link: form.map_url,
   };
+
+  try {
+    if (editingId) {
+      await updateLocation(editingId, { iframe_link: form.map_url });
+    } else {
+      await addLocation(payload); // ✅ corrected
+    }
+    resetForm();
+    fetchLocations();
+  } catch (err) {
+    console.error('Submit error:', err);
+  }
+};
+
 
   const handleEdit = (item) => {
     setForm({ title: item.title, map_url: item.map_url });
