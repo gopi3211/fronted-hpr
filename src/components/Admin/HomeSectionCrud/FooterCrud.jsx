@@ -1,4 +1,3 @@
-// ✅ FooterCrud.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -14,23 +13,23 @@ const FooterCrud = () => {
     facebook: "",
     instagram: "",
     linkedin: "",
-    logo: null
+    logo: null,
   });
   const [editingId, setEditingId] = useState(null);
+  const [previewLogo, setPreviewLogo] = useState(null);
 
-const fetchFooter = async () => {
-  try {
-    const res = await axios.get(API);
-    if (res.data && res.data.data) {
-      setFooter([res.data.data]);
-      setForm({ ...res.data.data, logo: null });
-      setEditingId(res.data.data.id); // ✅ set the correct ID
+  const fetchFooter = async () => {
+    try {
+      const res = await axios.get(API);
+      if (res.data && res.data.data) {
+        setFooter([res.data.data]);
+        setForm({ ...res.data.data, logo: null });
+        setEditingId(res.data.data.id);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
     }
-  } catch (err) {
-    console.error("Fetch error:", err);
-  }
-};
-
+  };
 
   useEffect(() => {
     fetchFooter();
@@ -41,50 +40,50 @@ const fetchFooter = async () => {
   };
 
   const handleFileChange = (e) => {
-    setForm({ ...form, logo: e.target.files[0] });
+    const file = e.target.files[0];
+    setForm({ ...form, logo: file });
+    setPreviewLogo(file ? URL.createObjectURL(file) : null);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+      Object.keys(form).forEach((key) => {
+        if (key === "logo" && form.logo) {
+          formData.append("logo", form.logo);
+        } else if (key !== "logo") {
+          formData.append(key, form[key]);
+        }
+      });
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const formData = new FormData();
-    Object.keys(form).forEach((key) => {
-      if (key === "logo" && form.logo) {
-        formData.append("logo", form.logo);
-      } else if (key !== "logo") {
-        formData.append(key, form[key]);
+      if (editingId) {
+        await axios.put(`${API}/${editingId}`, formData);
+      } else {
+        await axios.post(API, formData);
       }
-    });
 
-    if (editingId) {
-      await axios.put(`${API}/${editingId}`, formData);
-    } else {
-      await axios.post(API, formData);
+      setForm({
+        tagline: "",
+        address: "",
+        phone: "",
+        email: "",
+        facebook: "",
+        instagram: "",
+        linkedin: "",
+        logo: null,
+      });
+      setPreviewLogo(null);
+      setEditingId(null);
+      fetchFooter();
+    } catch (err) {
+      console.error("Submit error:", err);
     }
-
-    setForm({
-      tagline: "",
-      address: "",
-      phone: "",
-      email: "",
-      facebook: "",
-      instagram: "",
-      linkedin: "",
-      logo: null,
-    });
-    setEditingId(null);
-    fetchFooter();
-  } catch (err) {
-    console.error("Submit error:", err);
-  }
-};
-
-
-
+  };
 
   const handleEdit = (item) => {
     setForm({ ...item, logo: null });
+    setPreviewLogo(`data:image/png;base64,${item.logo}`);
     setEditingId(item.id);
   };
 
@@ -100,48 +99,127 @@ const handleSubmit = async (e) => {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-[#23424A] mb-4">Footer Section</h2>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {["tagline", "address", "phone", "email", "facebook", "instagram", "linkedin"].map((field) => (
-          <input
-            key={field}
-            type="text"
-            name={field}
-            placeholder={field.replace("_", " ")}
-            value={form[field] || ""}
-            onChange={handleChange}
-            className="border p-2 rounded"
-          />
-        ))}
-        <input type="file" accept="image/*" onChange={handleFileChange} className="col-span-full" />
-        <button className="bg-green-600 text-white px-4 py-2 rounded-md col-span-full">
-          {editingId ? "Update" : "Add"}
-        </button>
-      </form>
+    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          Footer Management
+        </h2>
 
-      <div className="space-y-4">
-        {footer.map((item) => (
-          <div key={item.id} className="p-4 border rounded-lg flex justify-between items-center">
-            <div>
-              <p className="font-bold">{item.tagline}</p>
-              <p>{item.address}</p>
-              <p>{item.phone} | {item.email}</p>
-              <div className="text-sm text-blue-600 space-x-2">
-                <a href={item.facebook} target="_blank">Facebook</a>
-                <a href={item.instagram} target="_blank">Instagram</a>
-                <a href={item.linkedin} target="_blank">LinkedIn</a>
-              </div>
-              {item.logo && (
-                <img src={`data:image/png;base64,${item.logo}`} alt="logo" className="h-12 mt-2" />
-              )}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            { name: "tagline", placeholder: "Tagline" },
+            { name: "address", placeholder: "Address" },
+            { name: "phone", placeholder: "Phone" },
+            { name: "email", placeholder: "Email" },
+            { name: "facebook", placeholder: "Facebook URL" },
+            { name: "instagram", placeholder: "Instagram URL" },
+            { name: "linkedin", placeholder: "LinkedIn URL" },
+          ].map((field) => (
+            <div key={field.name}>
+              <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
+                {field.placeholder}
+              </label>
+              <input
+                type="text"
+                name={field.name}
+                placeholder={field.placeholder}
+                value={form[field.name] || ""}
+                onChange={handleChange}
+                className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => handleEdit(item)} className="text-blue-600 font-semibold">Edit</button>
-              <button onClick={() => handleDelete(item.id)} className="text-red-600 font-semibold">Delete</button>
-            </div>
+          ))}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Logo
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full p-2 border border-gray-300 rounded-md bg-white"
+            />
+            {previewLogo && (
+              <img
+                src={previewLogo}
+                alt="Logo Preview"
+                className="mt-3 w-24 h-12 object-contain rounded-md"
+              />
+            )}
+            {form.logo && (
+              <p className="text-sm text-gray-600 mt-2">Selected: {form.logo.name}</p>
+            )}
           </div>
-        ))}
+          <button
+            type="submit"
+            className={`md:col-span-2 py-2 rounded-md font-semibold text-white ${
+              editingId
+                ? "bg-yellow-600 hover:bg-yellow-700"
+                : "bg-green-600 hover:bg-green-700"
+            } transition-colors duration-200`}
+          >
+            {editingId ? "Update Footer" : "Add Footer"}
+          </button>
+        </form>
+
+        {/* Footer Cards */}
+        {footer.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center">No footer data available.</p>
+        ) : (
+          <div className="space-y-4">
+            {footer.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex justify-between items-center"
+              >
+                <div>
+                  <p className="text-lg font-semibold text-gray-900">{item.tagline}</p>
+                  <p className="text-sm text-gray-600">{item.address}</p>
+                  <p className="text-sm text-gray-600">{item.phone} | {item.email}</p>
+                  <div className="text-sm text-blue-600 space-x-4 mt-2">
+                    {item.facebook && (
+                      <a href={item.facebook} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                        Facebook
+                      </a>
+                    )}
+                    {item.instagram && (
+                      <a href={item.instagram} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                        Instagram
+                      </a>
+                    )}
+                    {item.linkedin && (
+                      <a href={item.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                        LinkedIn
+                      </a>
+                    )}
+                  </div>
+                  {item.logo && (
+                    <img
+                      src={`data:image/png;base64,${item.logo}`}
+                      alt="Footer Logo"
+                      className="mt-3 w-24 h-12 object-contain rounded-md"
+                    />
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

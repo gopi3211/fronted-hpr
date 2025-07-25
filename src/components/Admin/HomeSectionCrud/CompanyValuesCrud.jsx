@@ -84,86 +84,119 @@ const CompanyValuesCrud = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">Company Values CRUD</h2>
+    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+          Company Values Management
+        </h2>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
-        <div>
-          <label className="block font-medium mb-1">Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md"
-          />
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md h-24"
-          />
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              setImage(file);
-              setPreviewImage(file ? URL.createObjectURL(file) : null);
-            }}
-          />
-          {previewImage && (
-            <img src={previewImage} alt="Preview" className="mt-3 w-full h-48 object-cover" />
-          )}
-        </div>
-        <button
-          type="submit"
-          className={`w-full py-2 text-white font-semibold rounded-md ${
-            editingId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'
-          }`}
-        >
-          {editingId ? 'Update Value' : 'Add Value'}
-        </button>
-      </form>
-
-      {/* List */}
-      <h3 className="text-xl font-semibold text-gray-700 mt-10 mb-4">All Values</h3>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {values.map((val) => (
-            <div key={val.id} className="bg-white p-4 shadow rounded-lg">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter value title"
+              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter value description"
+              className="w-full p-3 border border-gray-300 rounded-md bg-white h-24 resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                setImage(file);
+                setPreviewImage(file ? URL.createObjectURL(file) : null);
+              }}
+              className="w-full p-2 border border-gray-300 rounded-md bg-white"
+            />
+            {previewImage && (
               <img
-                src={`data:image/jpeg;base64,${val.image}`}
-                alt={val.title}
-                className="w-full h-40 object-cover rounded mb-3"
+                src={previewImage}
+                alt="Preview"
+                className="mt-3 w-full h-48 object-cover rounded-md"
               />
-              <h4 className="text-lg font-bold">{val.title}</h4>
-              <p className="text-sm text-gray-600">{val.description}</p>
-              <div className="mt-4 flex justify-between">
-                <button
-                  onClick={() => handleEdit(val)}
-                  className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(val.id)}
-                  className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
-                >
-                  Delete
-                </button>
+            )}
+            {image && (
+              <p className="text-sm text-gray-600 mt-2">Selected: {image.name}</p>
+            )}
+          </div>
+          <button
+            type="submit"
+            className={`w-full py-2 rounded-md font-semibold text-white ${
+              editingId
+                ? 'bg-yellow-600 hover:bg-yellow-700'
+                : 'bg-green-600 hover:bg-green-700'
+            } transition-colors duration-200`}
+          >
+            {editingId ? 'Update Value' : 'Add Value'}
+          </button>
+        </form>
+
+        {/* List */}
+        <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">
+          All Values
+        </h3>
+        {loading ? (
+          <p className="text-gray-600 text-center">Loading...</p>
+        ) : values.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center">No values available.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {values.map((val) => (
+              <div
+                key={val.id}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300"
+              >
+                <img
+                  src={`data:image/jpeg;base64,${val.image}`}
+                  alt={val.title}
+                  className="w-full h-40 object-cover"
+                />
+                <div className="p-4">
+                  <h4 className="text-lg font-semibold text-gray-900">{val.title}</h4>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{val.description}</p>
+                  <div className="mt-4 flex justify-between gap-2">
+                    <button
+                      onClick={() => handleEdit(val)}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(val.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

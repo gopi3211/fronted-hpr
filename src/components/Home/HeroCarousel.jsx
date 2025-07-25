@@ -8,33 +8,40 @@ import "swiper/css/navigation";
 
 const HeroCarousel = () => {
   const [slides, setSlides] = useState([]);
+  const [loading, setLoading] = useState(true);
   const API = import.meta.env.VITE_API_BASE_URL + "/hero-carousel";
 
   useEffect(() => {
     const fetchSlides = async () => {
       try {
         const res = await axios.get(API);
-        const formatted = res.data?.data?.map((slide) => ({
-          heading: slide.heading,
-          subheading: slide.subheading,
-          image: `data:image/jpeg;base64,${btoa(
-            new Uint8Array(slide.image.data).reduce(
-              (data, byte) => data + String.fromCharCode(byte),
-              ""
-            )
-          )}`,
-        })) || [];
+        const formatted = res.data?.data?.map((slide) => {
+          const blob = new Blob([new Uint8Array(slide.image.data)], {
+            type: "image/jpeg",
+          });
+          return {
+            heading: slide.heading,
+            subheading: slide.subheading,
+            image: URL.createObjectURL(blob),
+          };
+        }) || [];
         setSlides(formatted);
       } catch (err) {
         console.error("Error fetching slides", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchSlides();
   }, []);
 
-  if (slides.length === 0) {
-    return <div className="text-center py-32 text-xl">Loading hero section...</div>;
+  if (loading) {
+    return (
+      <div className="w-full h-[100vh] flex justify-center items-center bg-gray-100">
+        <div className="w-12 h-12 border-4 border-green-600 border-dashed rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const MissionStatementCrud = () => {
@@ -45,38 +45,44 @@ const MissionStatementCrud = () => {
   };
 
   return (
-    <div className="pt-32 px-4 min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
           Update Mission Statement
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Heading</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Heading
+            </label>
             <input
               type="text"
               value={heading}
               onChange={(e) => setHeading(e.target.value)}
               placeholder="Enter mission heading"
-              className="w-full p-3 border rounded-md focus:ring-2 focus:ring-lime-500"
+              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              required
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={6}
               placeholder="Enter mission description"
-              className="w-full p-3 border rounded-md resize-none focus:ring-2 focus:ring-lime-500"
+              className="w-full p-3 border border-gray-300 rounded-md bg-white resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              required
             ></textarea>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md font-semibold transition duration-200"
+            className="w-full py-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 transition-colors duration-200 disabled:bg-green-400 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? "Saving..." : "Update Mission Statement"}

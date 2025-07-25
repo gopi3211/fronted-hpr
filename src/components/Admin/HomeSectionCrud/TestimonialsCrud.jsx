@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const API = import.meta.env.VITE_API_BASE_URL + "/home/testimonials";
@@ -80,96 +80,125 @@ const TestimonialsCrud = () => {
   };
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg">
-      <h2 className="text-3xl font-bold text-[#23424A] mb-6">Manage Testimonials</h2>
+    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          Manage Testimonials
+        </h2>
 
-      {/* Form Section */}
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-10"
-      >
-        <div className="flex flex-col">
-          <label className="font-semibold mb-1">Name</label>
-          <input
-            type="text"
-            placeholder="Customer name"
-            className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label className="font-semibold mb-1">Message</label>
-          <input
-            type="text"
-            placeholder="Testimonial message"
-            className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label className="font-semibold mb-1">Photo</label>
-          <input
-            type="file"
-            className="border rounded-lg px-3 py-2"
-            onChange={handleImageChange}
-          />
-          {preview && (
-            <img
-              src={preview}
-              alt="Preview"
-              className="mt-2 h-16 w-16 rounded-full object-cover border"
-            />
-          )}
-        </div>
-
-        <div className="md:col-span-3 flex justify-end mt-4">
-          <button
-            type="submit"
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold shadow"
-          >
-            {editingId ? "Update Testimonial" : "Add Testimonial"}
-          </button>
-        </div>
-      </form>
-
-      {/* Testimonials Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {testimonials.map((item) => (
-          <div
-            key={item.id}
-            className="bg-gray-100 p-4 rounded-xl shadow hover:shadow-lg transition-all duration-200"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <img
-                src={`data:image/jpeg;base64,${item.image}`}
-                alt={item.name}
-                className="w-14 h-14 rounded-full object-cover border"
+        {/* Form Section */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-xl shadow-lg p-6 mb-10 space-y-6"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Name
+              </label>
+              <input
+                type="text"
+                placeholder="Customer name"
+                className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
               />
-              <div>
-                <h4 className="font-bold text-md">{item.name}</h4>
-                <p className="text-sm text-gray-600">{item.message}</p>
-              </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => handleEdit(item)}
-                className="text-blue-600 hover:underline text-sm font-semibold"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(item.id)}
-                className="text-red-600 hover:underline text-sm font-semibold"
-              >
-                Delete
-              </button>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Message
+              </label>
+              <input
+                type="text"
+                placeholder="Testimonial message"
+                className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Photo
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                className="w-full p-2 border border-gray-300 rounded-md bg-white"
+                onChange={handleImageChange}
+              />
+              {preview && (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="mt-3 w-16 h-16 rounded-full object-cover border border-gray-300"
+                />
+              )}
+              {image && (
+                <p className="text-sm text-gray-600 mt-2">Selected: {image.name}</p>
+              )}
             </div>
           </div>
-        ))}
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className={`px-6 py-2 rounded-md font-semibold text-white ${
+                editingId
+                  ? "bg-yellow-600 hover:bg-yellow-700"
+                  : "bg-green-600 hover:bg-green-700"
+              } transition-colors duration-200`}
+            >
+              {editingId ? "Update Testimonial" : "Add Testimonial"}
+            </button>
+          </div>
+        </form>
+
+        {/* Testimonials Grid */}
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          All Testimonials
+        </h3>
+        {testimonials.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center">No testimonials available.</p>
+        ) : (
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {testimonials.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-lg shadow-md p-4 hover:shadow-xl transition-all duration-300"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <img
+                    src={`data:image/jpeg;base64,${item.image}`}
+                    alt={item.name}
+                    className="w-14 h-14 rounded-full object-cover border border-gray-300"
+                  />
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900">{item.name}</h4>
+                    <p className="text-sm text-gray-600 line-clamp-2">{item.message}</p>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

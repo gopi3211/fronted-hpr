@@ -76,7 +76,7 @@ const ProjectAmenitiesCrud = ({ selectedProject }) => {
         await createAmenities(payload);
         toast.success("Amenities added");
       }
-      fetchAmenities(); // refresh
+      fetchAmenities();
     } catch (err) {
       toast.error("Save failed");
     }
@@ -96,51 +96,106 @@ const ProjectAmenitiesCrud = ({ selectedProject }) => {
   };
 
   return (
-    <div className="p-6 bg-white shadow rounded">
-      <h2 className="text-xl font-bold mb-4">Manage Amenities</h2>
+    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">
+          🏢 Manage Amenities
+        </h2>
 
-      <h3 className="text-lg font-semibold mt-4">Infrastructure</h3>
-      {infrastructure.map((item, idx) => (
-        <div key={idx} className="flex gap-2 mt-2">
-          <input
-            type="text"
-            className="border p-2 w-1/3"
-            placeholder="Title"
-            value={item.title}
-            onChange={(e) => handleInfraChange(idx, "title", e.target.value)}
-          />
-          <input
-            type="text"
-            className="border p-2 w-2/3"
-            placeholder="Description"
-            value={item.description}
-            onChange={(e) => handleInfraChange(idx, "description", e.target.value)}
-          />
-          <button onClick={() => removeInfra(idx)} className="text-red-500">🗑</button>
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Infrastructure</h3>
+            {infrastructure.map((item, idx) => (
+              <div key={idx} className="flex gap-3 items-center mt-2">
+                <div className="w-1/3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Enter title"
+                    value={item.title}
+                    onChange={(e) => handleInfraChange(idx, "title", e.target.value)}
+                  />
+                </div>
+                <div className="w-2/3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Enter description"
+                    value={item.description}
+                    onChange={(e) => handleInfraChange(idx, "description", e.target.value)}
+                  />
+                </div>
+                <button
+                  onClick={() => removeInfra(idx)}
+                  className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-colors"
+                >
+                  🗑
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={addInfra}
+              className="mt-3 text-green-600 hover:text-green-800 font-medium transition-colors"
+            >
+              + Add Infrastructure
+            </button>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Features</h3>
+            {features.map((item, idx) => (
+              <div key={idx} className="flex gap-3 items-center mt-2">
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Feature
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Enter feature"
+                    value={item.feature}
+                    onChange={(e) => handleFeatureChange(idx, e.target.value)}
+                  />
+                </div>
+                <button
+                  onClick={() => removeFeature(idx)}
+                  className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-colors"
+                >
+                  🗑
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={addFeature}
+              className="mt-3 text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            >
+              + Add Feature
+            </button>
+          </div>
+
+          <div className="flex gap-4 mt-6">
+            <button
+              onClick={handleSave}
+              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              Save
+            </button>
+            {amenitiesId && (
+              <button
+                onClick={handleDelete}
+                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            )}
+          </div>
         </div>
-      ))}
-      <button onClick={addInfra} className="mt-2 text-green-600">+ Add Infrastructure</button>
-
-      <h3 className="text-lg font-semibold mt-6">Features</h3>
-      {features.map((item, idx) => (
-        <div key={idx} className="flex gap-2 mt-2">
-          <input
-            type="text"
-            className="border p-2 w-full"
-            placeholder="Feature"
-            value={item.feature}
-            onChange={(e) => handleFeatureChange(idx, e.target.value)}
-          />
-          <button onClick={() => removeFeature(idx)} className="text-red-500">🗑</button>
-        </div>
-      ))}
-      <button onClick={addFeature} className="mt-2 text-blue-600">+ Add Feature</button>
-
-      <div className="flex gap-4 mt-6">
-        <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded">Save</button>
-        {amenitiesId && (
-          <button onClick={handleDelete} className="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
-        )}
       </div>
     </div>
   );

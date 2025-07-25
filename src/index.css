@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  @apply bg-[#f9fafb] text-gray-900 antialiased;
+}
+
 
 html, body, #root {
   height: 100%;

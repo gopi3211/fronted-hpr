@@ -7,7 +7,8 @@ import {
   getPlanByProjectId,
   getLocationByProjectId
 } from "../../services/hprProjectsService";
-import ProjectAmenitiesPublic from "./ProjectAmenitiesPublic"; // ✅ CORRECT
+import ProjectAmenitiesPublic from "./ProjectAmenitiesPublic";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 const tabs = ["Home", "Gallery", "Plan", "Location", "Amenities"];
 
@@ -19,6 +20,7 @@ const ProjectDetailsPage = () => {
   const [gallery, setGallery] = useState([]);
   const [plan, setPlan] = useState(null);
   const [location, setLocation] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAllData();
@@ -41,6 +43,8 @@ const ProjectDetailsPage = () => {
       setLocation(loc.data || []);
     } catch (err) {
       console.error("Error loading project data:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,127 +52,191 @@ const ProjectDetailsPage = () => {
     switch (selectedTab) {
       case "Home":
         return home ? (
-          <div className="p-4">
-            <h2 className="text-2xl font-bold mb-2">{home.title}</h2>
-            <p className="mb-4">{home.description}</p>
-            {home.image && (
-              <img
-                src={`data:image/png;base64,${home.image}`}
-                alt="Home"
-                className="rounded shadow w-full max-w-2xl"
-              />
-            )}
-            {home.brochure_blob && (
-              <div className="mt-4">
-                <a
-                  href={`data:application/pdf;base64,${home.brochure_blob}`}
-                  download="brochure.pdf"
-                  className="text-blue-600 underline"
-                >
-                  📄 Download Brochure
-                </a>
+          <div className="bg-white py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                Home Section
+              </h2>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{home.title}</h3>
+                <p className="text-lg text-gray-600 mb-4">{home.description}</p>
+                {home.image && (
+                  <img
+                    src={`data:image/png;base64,${home.image}`}
+                    alt="Home"
+                    className="w-full max-w-2xl h-auto rounded-md shadow-sm mx-auto"
+                  />
+                )}
+                {home.brochure_blob && (
+                  <div className="mt-4 text-center">
+                    <a
+                      href={`data:application/pdf;base64,${home.brochure_blob}`}
+                      download="brochure.pdf"
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors duration-200"
+                    >
+                      📄 Download Brochure
+                    </a>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
-        ) : <p>Loading Home content...</p>;
+        ) : (
+          <p className="text-gray-500 text-center py-8">Loading Home content...</p>
+        );
 
       case "Gallery":
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4">
-            {gallery.map((item, index) => (
-              <div key={index} className="border p-2 shadow rounded">
-                <img
-                  src={`data:image/png;base64,${item.image_blob}`}
-                  alt="Gallery"
-                  className="w-full h-48 object-cover mb-2 rounded"
-                />
-                <p className="text-sm text-gray-700">{item.description}</p>
-                <p className="text-xs text-gray-500">{item.work_date}</p>
-              </div>
-            ))}
+          <div className="bg-white py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                Gallery Section
+              </h2>
+              {gallery.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center">No gallery items available.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {gallery.map((item, index) => (
+                    <div
+                      key={index}
+                      className="bg-white rounded-lg shadow-md p-4 hover:shadow-xl transition-all duration-300"
+                    >
+                      <img
+                        src={`data:image/png;base64,${item.image_blob}`}
+                        alt="Gallery"
+                        className="w-full h-48 object-cover rounded-md mb-3"
+                      />
+                      <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
+                      <p className="text-xs text-gray-500 mt-1">{item.work_date}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         );
 
       case "Plan":
         return plan ? (
-          <div className="p-4">
-            <h3 className="text-lg font-semibold mb-2">{plan.description}</h3>
-            {plan.plan_blob?.data ? (() => {
-              try {
-                const base64 = btoa(
-                  new Uint8Array(plan.plan_blob.data)
-                    .reduce((acc, byte) => acc + String.fromCharCode(byte), "")
-                );
-                return (
-                  <img
-                    src={`data:image/png;base64,${base64}`}
-                    alt="Plan"
-                    className="max-w-full rounded"
-                  />
-                );
-              } catch (err) {
-                console.error("Plan image render failed:", err);
-                return <p className="text-red-500">Failed to load image</p>;
-              }
-            })() : (
-              <p className="text-gray-500 italic">No plan uploaded.</p>
-            )}
+          <div className="bg-white py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                Plan Section
+              </h2>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{plan.description}</h3>
+                {plan.plan_blob?.data ? (() => {
+                  try {
+                    const base64 = btoa(
+                      new Uint8Array(plan.plan_blob.data)
+                        .reduce((acc, byte) => acc + String.fromCharCode(byte), "")
+                    );
+                    return (
+                      <img
+                        src={`data:image/png;base64,${base64}`}
+                        alt="Plan"
+                        className="w-full max-w-2xl h-auto rounded-md shadow-sm mx-auto"
+                      />
+                    );
+                  } catch (err) {
+                    console.error("Plan image render failed:", err);
+                    return <p className="text-red-600 text-center">Failed to load plan image</p>;
+                  }
+                })() : (
+                  <p className="text-gray-500 text-sm text-center italic">No plan uploaded.</p>
+                )}
+              </div>
+            </div>
           </div>
-        ) : <p>Plan not available.</p>;
+        ) : (
+          <p className="text-gray-500 text-sm text-center py-8 italic">Plan not available.</p>
+        );
 
       case "Location":
         return location && location.length > 0 ? (
-          <div className="p-4 space-y-6">
-            {location.map((loc) => (
-              <div key={loc.id} className="w-full h-96 border rounded overflow-hidden">
-                <h3 className="text-lg font-semibold mb-2">{loc.title}</h3>
-                <iframe
-                  src={loc.map_url}
-                  title={`Map-${loc.id}`}
-                  className="w-full h-full"
-                  loading="lazy"
-                />
+          <div className="bg-white py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                Location Section
+              </h2>
+              <div className="space-y-6">
+                {location.map((loc) => (
+                  <div key={loc.id} className="bg-white rounded-lg shadow-md p-6">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{loc.title}</h3>
+                    <div className="w-full h-96 rounded-md overflow-hidden">
+                      <iframe
+                        src={loc.map_url}
+                        title={`Map-${loc.id}`}
+                        className="w-full h-full"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         ) : (
-          <p className="text-gray-500 italic">Location not available.</p>
+          <p className="text-gray-500 text-sm text-center py-8 italic">Location not available.</p>
         );
 
       case "Amenities":
-        return <ProjectAmenitiesPublic projectId={id} />;
+        return (
+          <div className="bg-white py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                Amenities Section
+              </h2>
+              <ProjectAmenitiesPublic projectId={id} />
+            </div>
+          </div>
+        );
 
       default:
         return null;
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold text-center mb-6">
-        {project?.name || "Loading..."}
-      </h1>
-
-      <div className="flex gap-4 justify-center mb-6 flex-wrap">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            className={`px-4 py-2 rounded ${
-              selectedTab === tab
-                ? "bg-blue-600 text-white"
-                : "bg-white text-blue-600 border border-blue-600"
-            }`}
-            onClick={() => setSelectedTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-white pt-24">
+        <DotLottieReact
+          src="https://lottie.host/89abc775-d6a9-4278-91e8-93588bb9b5a3/GZ2c5sHZ6m.lottie"
+          autoplay
+          loop
+          style={{ width: 150, height: 150 }}
+        />
       </div>
+    );
+  }
 
-      <div className="bg-white rounded shadow">{renderTabContent()}</div>
+  return (
+    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          {project?.name || "Loading Project..."}
+        </h1>
+
+        <div className="flex gap-3 justify-center mb-8 flex-wrap">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              className={`px-4 py-2 text-sm font-semibold rounded-md shadow-sm transition-colors duration-200 ${
+                selectedTab === tab
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-blue-50"
+              }`}
+              onClick={() => setSelectedTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md">{renderTabContent()}</div>
+      </div>
     </div>
   );
 };
 
 export default ProjectDetailsPage;
-

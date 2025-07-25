@@ -11,10 +11,12 @@ const sections = [
   { name: 'Projects Section', path: '/admin/projects' },
   { name: 'Gallery Section', path: '/admin/gallery' },
   { name: 'News & Updates', path: '/admin/news' },
-  { name: 'Contact Us', path: '/admin/contact' },
+  { name: 'Contact Us', path: '/admin/contact' }, // ✅ Already added
   { name: 'User Management', path: '/admin/users' },
-  { name: 'Our Partners', path: '/admin/partners' }, // ✅ ADD THIS LINE
+  { name: 'Our Partners', path: '/admin/partners' },
+  { name: 'Email Settings', path: '/admin/email-settings' }, // ✅ Add this new line
 ];
+
 
 
 

@@ -20,12 +20,12 @@ const MissionStatement = () => {
   }, []);
 
   return (
-    <section className="bg-gray-50 py-12 px-6">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8">
-        <h2 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-4">
+    <section className="bg-gradient-to-br from-[#f1fdf6] to-white py-20 px-6 md:px-10">
+      <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-lg px-8 md:px-16 py-14 text-center border border-gray-100">
+        <h2 className="text-3xl md:text-5xl font-extrabold text-[#2d6a4f] mb-6 tracking-tight drop-shadow-sm">
           {mission.heading || "Loading..."}
         </h2>
-        <p className="text-gray-700 text-lg text-center leading-relaxed">
+        <p className="text-lg md:text-xl text-gray-700 leading-relaxed tracking-wide">
           {mission.description || "Please check back later."}
         </p>
       </div>

@@ -19,38 +19,22 @@ import AdminVerifyOtpPage from './components/Admin/AdminVerifyOtpPage';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import ProtectedRoute from './components/Admin/ProtectedRoute';
 
-
 import CompanyValuesCrud from './components/Admin/HomeSectionCrud/CompanyValuesCrud';
 import TestimonialsCrud from './components/Admin/HomeSectionCrud/TestimonialsCrud';
-
 import FooterCrud from './components/Admin/HomeSectionCrud/FooterCrud';
-import AboutUsPage from './components/AboutUs/AboutUsPage';
 
+import AboutUsPage from './components/AboutUs/AboutUsPage';
 import AboutUsPageCrud from './components/Admin/HomeSectionCrud/AboutUsPageCrud';
 import AboutUsSubsectionCrud from './components/Admin/HomeSectionCrud/AboutUsSubsectionCrud';
 import PartnersCrud from './components/Admin/HomeSectionCrud/PartnersCrud';
-
 
 import HPRProjectsPublicPage from "./components/Public/HPRProjectsPublicPage";
 import ProjectDetailsPage from "./components/Public/ProjectDetailsPage";
 import HPRProjectsCrudPage from "./components/Admin/HomeSectionCrud/HPRProjectsCrudPage";
 
-
 import GalleryPage from './components/Public/GalleryPage';
-
-
-// // Optional placeholders
-// const AboutUsSection = () => (
-//   <div className="text-center py-20 bg-white" id="about-us">
-//     <h2 className="text-3xl font-bold text-lime-700">About Us Section (Coming Soon)</h2>
-//   </div>
-// );
-
-// const NewsSection = () => (
-//   <div className="text-center py-20 bg-white" id="news-updates">
-//     <h2 className="text-3xl font-bold text-lime-700">News & Updates (Coming Soon)</h2>
-//   </div>
-// );
+import NewsCrud from './components/Admin/HomeSectionCrud/NewsCrud';
+import NewsPage from './components/Public/NewsPage';
 
 function App() {
   useEffect(() => {
@@ -72,143 +56,126 @@ function App() {
   return (
     <>
       <Navbar />
-      
-<div className="pt-24"> {/* Add this wrapper */}
 
-      <Routes>
-
-
-
-
-        {/* 🌐 Public Home Page */}
-        <Route
-          path="/"
-          element={
-            <div className="min-h-screen w-full overflow-x-hidden pt-24">
-              <HeroCarousel />
-              <MissionStatement />
-              <div id="projects">
-                <ProjectsSection />
+<div className="pt-20 sm:pt-24 bg-[#f9fafb] text-gray-900 min-h-screen font-sans">
+        <Routes>
+          {/* 🌐 Public Home Page */}
+          <Route
+            path="/"
+            element={
+              <div className="w-full overflow-x-hidden">
+                <div className="mb-16">
+                  <HeroCarousel />
+                </div>
+                <div className="mb-16">
+                  <MissionStatement />
+                </div>
+                <div id="projects" className="mb-16">
+                  <ProjectsSection />
+                </div>
+                <div className="mb-16">
+                  <CompanyValuesSection />
+                </div>
+                <div className="mb-16">
+                  <TestimonialCarousel />
+                </div>
+                <Footer />
               </div>
-              <CompanyValuesSection />
-              <TestimonialCarousel />
-              {/* Future sections:
-              <div id="about-us">
-                <AboutUsSection />
-              </div>
-              <div id="news-updates">
-                <NewsSection />
-              </div> */}
-              <Footer />
-            </div>
-          }
-        />
+            }
+          />
 
-  <Route path="/about" element={<AboutUsPage />} />
+          {/* ✅ News Page (Public) */}
+          <Route path="/news" element={<NewsPage />} />
 
-<Route path="/projects" element={<HPRProjectsPublicPage />} />
+          {/* ✅ Public Pages */}
+          <Route path="/about" element={<AboutUsPage />} />
+          <Route path="/projects" element={<HPRProjectsPublicPage />} />
+          <Route path="/project-details/:id" element={<ProjectDetailsPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
 
-<Route path="/project-details/:id" element={<ProjectDetailsPage />} />
-<Route path="/gallery" element={<GalleryPage />} />
+          {/* 🔐 Auth Pages */}
+          {!isAuthenticated && (
+            <>
+              <Route path="/admin/login" element={<AdminLoginPage />} />
+              <Route path="/admin/register" element={<AdminRegisterPage />} />
+              <Route path="/admin/verify-otp" element={<AdminVerifyOtpPage />} />
+            </>
+          )}
 
-        {/* 🔐 Auth Pages (Only when NOT logged in) */}
-        {!isAuthenticated && (
-          <>
-            <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/admin/register" element={<AdminRegisterPage />} />
-            <Route path="/admin/verify-otp" element={<AdminVerifyOtpPage />} />
-          </>
-        )}
+          {/* 🛠️ Admin CRUD Section (Protected) */}
+          <Route
+            path="/admin/home/crud"
+            element={
+              <ProtectedRoute>
+                <div className="bg-white min-h-screen px-6 py-10 space-y-16">
+                  <HeroCarouselCrud />
+                  <MissionStatementCrud />
+                  <ProjectsSectionCrud />
+                  <CompanyValuesCrud />
+                  <TestimonialsCrud />
+                  <FooterCrud />
+                </div>
+              </ProtectedRoute>
+            }
+          />
 
-       
-       
-        {/* 🛠️ Admin CRUD Section (Protected) */}
-        <Route
-          path="/admin/home/crud"
-          element={
-            <ProtectedRoute>
-              <div className="bg-white min-h-screen px-6 py-10 space-y-16">
-                <HeroCarouselCrud />
-                <MissionStatementCrud />
-                <ProjectsSectionCrud />
-                        <CompanyValuesCrud /> {/* ✅ Add here */}
-<TestimonialsCrud />
-<FooterCrud /> {/* ✅ Add this */}
+          {/* 📂 Admin Section Routes */}
+          <Route
+            path="/admin/about"
+            element={
+              <ProtectedRoute>
+                <AboutUsPageCrud />
+              </ProtectedRoute>
+            }
+          />
 
-              </div>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/about/subsections"
+            element={
+              <ProtectedRoute>
+                <AboutUsSubsectionCrud />
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/admin/projects"
+            element={
+              <ProtectedRoute>
+                <HPRProjectsCrudPage />
+              </ProtectedRoute>
+            }
+          />
 
-       {/* ✅ About Us CRUD Protected Route */}
-        <Route
-          path="/admin/about"
-          element={
-            <ProtectedRoute>
-              <AboutUsPageCrud />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/partners"
+            element={
+              <ProtectedRoute>
+                <PartnersCrud />
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/admin/news"
+            element={
+              <ProtectedRoute>
+                <NewsCrud />
+              </ProtectedRoute>
+            }
+          />
 
-
-
-
-
-
-        {/* 📊 Admin Dashboard */}
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-<Route
-  path="/admin/projects"
-  element={
-    <ProtectedRoute>
-      <HPRProjectsCrudPage />
-    </ProtectedRoute>
-  }
-/>
-
-
-
-<Route
-  path="/admin/about/subsections"
-  element={
-    <ProtectedRoute>
-      <AboutUsSubsectionCrud />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/admin/partners"
-  element={
-    <ProtectedRoute>
-      <PartnersCrud />
-    </ProtectedRoute>
-  }
-/>
-
-
-
-
-      </Routes>
-
-
-
-
-
-
-</div>
-
-
+          {/* 📊 Admin Dashboard */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </div>
     </>
   );
 }

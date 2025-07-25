@@ -36,12 +36,15 @@ const Navbar = () => {
   Gallery
 </Link>
 
-          <Link to="/#news-updates" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
-            News & Updates
-          </Link>
-          <Link to="/#contact-us" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
-            Contact Us
-          </Link>
+        <Link to="/news" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+  News & Updates
+</Link>
+
+
+        <li>
+  <Link to="/contact" className="hover:text-lime-600">Contact Us</Link>
+</li>
+
         </nav>
 
         {/* Admin Control Buttons */}
@@ -83,3 +86,12 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
+
+
+
+
+
+

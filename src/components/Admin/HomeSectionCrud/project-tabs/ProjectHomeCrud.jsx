@@ -91,91 +91,148 @@ const ProjectHomeCrud = ({ projectId }) => {
   };
 
   return (
-    <div className="bg-gray-100 p-6 rounded shadow mt-4">
-      <h2 className="text-xl font-bold mb-4 text-green-700">🏠 Project Home Content</h2>
+    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">
+          🏠 Project Home Content
+        </h2>
 
-      {/* Form Section */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          placeholder="Title"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <textarea
-          placeholder="Description"
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <div className="flex flex-col gap-2">
-          <label className="font-semibold">Upload Brochure (PDF)</label>
-          <input type="file" accept="application/pdf" onChange={(e) => setBrochureFile(e.target.files[0])} />
-          {brochureFile && <p className="text-sm text-gray-700">📄 {brochureFile.name}</p>}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Title
+            </label>
+            <input
+              type="text"
+              placeholder="Enter title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              required
+            />
+          </div>
 
-          <label className="font-semibold mt-2">Upload Image (JPEG/PNG)</label>
-          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} />
-          {getImagePreview() && (
-            <img src={getImagePreview()} alt="Preview" className="w-48 h-32 object-cover border mt-2" />
-          )}
-        </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              placeholder="Enter description"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              required
+              rows={4}
+            />
+          </div>
 
-        <div className="flex gap-4 mt-4">
-          <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded">
-            {editingId ? 'Update' : 'Create'}
-          </button>
-          {editingId && (
-            <button type="button" onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded">
-              Delete
-            </button>
-          )}
-        </div>
-      </form>
-
-      {/* ✅ Display Section Below Form */}
-      {homeData && (
-        <div className="mt-8 bg-white rounded p-4 border">
-          <h3 className="text-lg font-semibold text-blue-700 mb-2">🔎 Current Saved Data</h3>
-          <p className="mb-2"><strong>Title:</strong> {homeData.title}</p>
-          <p className="mb-2"><strong>Description:</strong> {homeData.description}</p>
-        
-{getPdfBlobUrl() && (
-  <div className="mb-4">
-    <strong>Brochure:</strong>{" "}
-    <a
-      href={getPdfBlobUrl()}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-blue-600 underline"
-    >
-      📄 View Brochure
-    </a>
-    <embed
-      src={getPdfBlobUrl()}
-      type="application/pdf"
-      width="100%"
-      height="500px"
-      className="mt-2 border rounded"
-    />
-  </div>
-)}
-
-
-
-
-
-
-          {getImagePreview() && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <strong>Image:</strong>
-              <img src={getImagePreview()} alt="Saved" className="w-48 h-32 object-cover border mt-2" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                📄 Upload Brochure (PDF)
+              </label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setBrochureFile(e.target.files[0])}
+                className="w-full p-2 border border-gray-300 rounded-md bg-white"
+              />
+              {brochureFile && (
+                <p className="text-sm text-gray-600 mt-2">
+                  Selected: {brochureFile.name}
+                </p>
+              )}
             </div>
-          )}
-        </div>
-      )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                🖼️ Upload Image (JPEG/PNG)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files[0])}
+                className="w-full p-2 border border-gray-300 rounded-md bg-white"
+              />
+              {getImagePreview() && (
+                <img
+                  src={getImagePreview()}
+                  alt="Preview"
+                  className="mt-2 w-48 h-32 object-cover border rounded-md"
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-4 mt-6">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              {editingId ? 'Update' : 'Create'}
+            </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </form>
+
+        {homeData && (
+          <div className="mt-10 border-t border-gray-200 pt-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              🔍 Current Saved Data
+            </h3>
+            <p className="mb-2 text-gray-700">
+              <strong>Title:</strong> {homeData.title}
+            </p>
+            <p className="mb-4 text-gray-600">
+              <strong>Description:</strong> {homeData.description}
+            </p>
+
+            {getPdfBlobUrl() && (
+              <div className="mb-6">
+                <p className="text-gray-700 mb-2">
+                  <strong>Brochure:</strong>{' '}
+                  <a
+                    href={getPdfBlobUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    📄 View Brochure
+                  </a>
+                </p>
+                <embed
+                  src={getPdfBlobUrl()}
+                  type="application/pdf"
+                  width="100%"
+                  height="400px"
+                  className="border rounded-md"
+                />
+              </div>
+            )}
+
+            {getImagePreview() && (
+              <div className="mt-4">
+                <p className="text-gray-700 mb-2">
+                  <strong>Image:</strong>
+                </p>
+                <img
+                  src={getImagePreview()}
+                  alt="Saved"
+                  className="w-48 h-32 object-cover border rounded-md"
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
