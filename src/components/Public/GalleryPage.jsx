@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { getGalleryByCategory } from "../../services/hprProjectsService";
 import Footer from "../Home/Footer";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react"; // ✅ Import Lottie
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 const categories = ["Ongoing Projects", "Completed Projects", "Future Projects"];
+const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api/v1", "");
 
 const GalleryPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("Ongoing Projects");
@@ -26,10 +27,10 @@ const GalleryPage = () => {
 
       const res = await getGalleryByCategory(categoryMap[selectedCategory]);
 
-      const formatted = res.data?.map(item => ({
+      const formatted = res?.data?.map((item) => ({
         ...item,
-        image_url: item.image_blob
-          ? `data:image/jpeg;base64,${item.image_blob}`
+        image_url: item.image_filename
+          ? `${BASE_URL}/uploads/project-images/${item.image_filename}`
           : null,
       })) || [];
 
@@ -107,11 +108,13 @@ const GalleryPage = () => {
                       </div>
                     )}
                     <p className="text-sm font-semibold text-gray-900 line-clamp-2">
-                      {img.description}
+                      {img.description || "No description provided."}
                     </p>
-                    <p className="text-xs text-gray-600">
-                      {new Date(img.work_date).toLocaleDateString()}
-                    </p>
+                    {img.work_date && (
+                      <p className="text-xs text-gray-600">
+                        {new Date(img.work_date).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
                 ))
               )}

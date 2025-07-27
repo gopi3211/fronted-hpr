@@ -1,30 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 const API = import.meta.env.VITE_API_BASE_URL + '/home/company-values';
 
-const CompanyValuesCrud = () => {
+const CompanyValuesCrud = React.memo(() => {
   const [values, setValues] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [editingId, setEditingId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const hasFetched = useRef(false);
 
   const fetchValues = async () => {
+    console.log('[CompanyValues] Fetching...');
     try {
       const res = await axios.get(API);
-      setValues(res.data.data);
+      setValues(res.data.data || []);
+      console.log('[CompanyValues] Data:', res.data.data);
     } catch (err) {
-      console.error('Fetch error:', err);
-    } finally {
-      setLoading(false);
+      console.error('[CompanyValues] Fetch Error:', err);
     }
   };
 
   useEffect(() => {
-    fetchValues();
+    if (!hasFetched.current) {
+      fetchValues();
+      hasFetched.current = true;
+    }
   }, []);
 
   const resetForm = () => {
@@ -51,15 +54,15 @@ const CompanyValuesCrud = () => {
     try {
       if (editingId) {
         await axios.put(`${API}/${editingId}`, formData);
-        alert('Value updated successfully');
+        alert('Value updated');
       } else {
         await axios.post(API, formData);
-        alert('Value added successfully');
+        alert('Value added');
       }
       resetForm();
       fetchValues();
     } catch (err) {
-      console.error('Submit error:', err);
+      console.error('[CompanyValues] Submit Error:', err);
       alert('Operation failed');
     }
   };
@@ -67,18 +70,18 @@ const CompanyValuesCrud = () => {
   const handleEdit = (value) => {
     setTitle(value.title);
     setDescription(value.description);
-    setPreviewImage(`data:image/jpeg;base64,${value.image}`);
     setEditingId(value.id);
+setPreviewImage(value.image_url);  // ✅
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this value?')) return;
     try {
       await axios.delete(`${API}/${id}`);
-      alert('Value deleted');
+      alert('Deleted');
       fetchValues();
     } catch (err) {
-      console.error('Delete error:', err);
+      console.error('[CompanyValues] Delete Error:', err);
       alert('Delete failed');
     }
   };
@@ -91,36 +94,28 @@ const CompanyValuesCrud = () => {
         </h2>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white shadow rounded-xl p-6 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title
-            </label>
+            <label className="block text-sm font-medium mb-1">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter value title"
-              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full p-3 border border-gray-300 rounded-md"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
+            <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter value description"
-              className="w-full p-3 border border-gray-300 rounded-md bg-white h-24 resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full p-3 border border-gray-300 rounded-md resize-none"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Image
-            </label>
+            <label className="block text-sm font-medium mb-1">Image</label>
             <input
               type="file"
               accept="image/*"
@@ -129,68 +124,57 @@ const CompanyValuesCrud = () => {
                 setImage(file);
                 setPreviewImage(file ? URL.createObjectURL(file) : null);
               }}
-              className="w-full p-2 border border-gray-300 rounded-md bg-white"
+              className="w-full p-2 border border-gray-300 rounded-md"
             />
             {previewImage && (
               <img
                 src={previewImage}
                 alt="Preview"
-                className="mt-3 w-full h-48 object-cover rounded-md"
+                className="w-full h-40 object-cover mt-2 rounded"
+                loading="lazy"
               />
-            )}
-            {image && (
-              <p className="text-sm text-gray-600 mt-2">Selected: {image.name}</p>
             )}
           </div>
           <button
             type="submit"
-            className={`w-full py-2 rounded-md font-semibold text-white ${
-              editingId
-                ? 'bg-yellow-600 hover:bg-yellow-700'
-                : 'bg-green-600 hover:bg-green-700'
-            } transition-colors duration-200`}
+            className={`w-full py-2 rounded text-white font-semibold ${
+              editingId ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
+            }`}
           >
             {editingId ? 'Update Value' : 'Add Value'}
           </button>
         </form>
 
         {/* List */}
-        <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">
-          All Values
-        </h3>
-        {loading ? (
-          <p className="text-gray-600 text-center">Loading...</p>
-        ) : values.length === 0 ? (
-          <p className="text-gray-500 text-sm text-center">No values available.</p>
+        <h3 className="text-xl font-semibold mt-10 mb-4">All Company Values</h3>
+        {values.length === 0 ? (
+          <p className="text-center text-gray-500">No values found.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {values.map((val) => (
-              <div
-                key={val.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300"
-              >
-                <img
-                  src={`data:image/jpeg;base64,${val.image}`}
-                  alt={val.title}
-                  className="w-full h-40 object-cover"
-                />
-                <div className="p-4">
-                  <h4 className="text-lg font-semibold text-gray-900">{val.title}</h4>
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{val.description}</p>
-                  <div className="mt-4 flex justify-between gap-2">
-                    <button
-                      onClick={() => handleEdit(val)}
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(val.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
+              <div key={val.id} className="bg-white rounded shadow p-4 hover:shadow-md transition">
+            <img
+  src={val.image_url}  // ✅ correct - full backend URL
+  alt={val.title}
+  className="w-full h-40 object-cover rounded"
+  loading="lazy"
+/>
+
+                <h4 className="text-lg font-semibold mt-2">{val.title}</h4>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{val.description}</p>
+                <div className="mt-3 flex justify-between gap-2">
+                  <button
+                    onClick={() => handleEdit(val)}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(val.id)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -199,6 +183,6 @@ const CompanyValuesCrud = () => {
       </div>
     </div>
   );
-};
+});
 
 export default CompanyValuesCrud;

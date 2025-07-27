@@ -1,22 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 
 const API = import.meta.env.VITE_API_BASE_URL + '/home/company-values';
 
-const CompanyValuesSection = () => {
+const CompanyValuesSection = React.memo(() => {
   const [values, setValues] = useState([]);
+  const hasFetched = useRef(false);
 
   const fetchValues = async () => {
     try {
       const res = await axios.get(API);
-      setValues(res.data.data);
+      setValues(res.data.data || []);
+      console.log('[CompanyValues] Data fetched:', res.data.data);
     } catch (err) {
-      console.error('Error fetching company values:', err);
+      console.error('[CompanyValues] Fetch error:', err);
     }
   };
 
   useEffect(() => {
-    fetchValues();
+    if (!hasFetched.current) {
+      fetchValues();
+      hasFetched.current = true;
+    }
   }, []);
 
   return (
@@ -34,17 +39,15 @@ const CompanyValuesSection = () => {
                 index % 2 !== 0 ? 'md:flex-row-reverse' : ''
               } bg-white rounded-3xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden border border-gray-100`}
             >
-              {/* Image */}
               <div className="md:w-1/2 w-full h-64 md:h-auto">
-                <img
-                  src={`data:image/jpeg;base64,${item.image}`}
+<img
+  src={item.image_url}
+
                   alt={item.title}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
               </div>
-
-              {/* Text Content */}
               <div className="md:w-1/2 w-full flex flex-col justify-center p-8 text-center md:text-left bg-white">
                 <h3 className="text-2xl font-semibold text-[#1b4332] mb-3">{item.title}</h3>
                 <p className="text-[17px] leading-relaxed text-gray-700 tracking-wide">
@@ -57,6 +60,6 @@ const CompanyValuesSection = () => {
       </div>
     </section>
   );
-};
+});
 
 export default CompanyValuesSection;

@@ -1,42 +1,63 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   getAmenitiesByProjectId,
-  createAmenities,
-  updateAmenities,
-  deleteAmenities,
+  createAmenities, // ✅ CORRECT function
 } from "../../../../services/hprProjectsService";
-import { toast } from "react-toastify";
 
-const ProjectAmenitiesCrud = ({ selectedProject }) => {
-  const [amenitiesId, setAmenitiesId] = useState(null);
-  const [infrastructure, setInfrastructure] = useState([{ title: "", description: "" }]);
-  const [features, setFeatures] = useState([{ feature: "" }]);
+const ProjectAmenitiesCrud = React.memo(({ projectId }) => {
+  const [infrastructure, setInfrastructure] = useState([]);
+  const [features, setFeatures] = useState([]);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    if (selectedProject?.id) fetchAmenities();
-  }, [selectedProject]);
-
-  const fetchAmenities = async () => {
-    try {
-      const res = await getAmenitiesByProjectId(selectedProject.id);
-      if (res?.length > 0) {
-        const data = res[0];
-        setAmenitiesId(data.id);
-        setInfrastructure(JSON.parse(data.infrastructure));
-        setFeatures(JSON.parse(data.features));
-      } else {
-        setAmenitiesId(null);
-        setInfrastructure([{ title: "", description: "" }]);
-        setFeatures([{ feature: "" }]);
-      }
-    } catch (err) {
-      toast.error("Failed to fetch amenities");
+    if (!projectId) {
+      console.error("❌ Project ID missing");
+      return;
     }
+
+    if (!hasFetched.current) {
+      console.log("✅ Fetching amenities for Project ID:", projectId);
+      fetchData();
+      hasFetched.current = true;
+    }
+  }, [projectId]);
+
+const fetchData = async () => {
+  try {
+    const res = await getAmenitiesByProjectId(projectId);
+    if (Array.isArray(res.data)) {
+      const infra = [];
+      const feats = [];
+
+      res.data.forEach((entry) => {
+        if (entry.infrastructure) {
+          infra.push(...JSON.parse(entry.infrastructure));
+        }
+        if (entry.features) {
+          feats.push(...JSON.parse(entry.features));
+        }
+      });
+
+      setInfrastructure(infra);
+      setFeatures(feats);
+    }
+  } catch (err) {
+    console.error("Error fetching amenities:", err);
+  }
+};
+
+
+  const handleAddInfrastructure = () => {
+    setInfrastructure([...infrastructure, { title: "", description: "" }]);
   };
 
-  const handleInfraChange = (index, key, value) => {
+  const handleAddFeature = () => {
+    setFeatures([...features, { feature: "" }]);
+  };
+
+  const handleInfraChange = (index, field, value) => {
     const updated = [...infrastructure];
-    updated[index][key] = value;
+    updated[index][field] = value;
     setInfrastructure(updated);
   };
 
@@ -46,159 +67,122 @@ const ProjectAmenitiesCrud = ({ selectedProject }) => {
     setFeatures(updated);
   };
 
-  const addInfra = () => setInfrastructure([...infrastructure, { title: "", description: "" }]);
-  const addFeature = () => setFeatures([...features, { feature: "" }]);
-
-  const removeInfra = (index) => {
+  const handleInfraDelete = (index) => {
     const updated = [...infrastructure];
     updated.splice(index, 1);
     setInfrastructure(updated);
   };
 
-  const removeFeature = (index) => {
+  const handleFeatureDelete = (index) => {
     const updated = [...features];
     updated.splice(index, 1);
     setFeatures(updated);
   };
 
-  const handleSave = async () => {
-    const payload = {
-      project_id: selectedProject.id,
-      infrastructure: JSON.stringify(infrastructure),
-      features: JSON.stringify(features),
-    };
 
-    try {
-      if (amenitiesId) {
-        await updateAmenities(amenitiesId, payload);
-        toast.success("Amenities updated");
-      } else {
-        await createAmenities(payload);
-        toast.success("Amenities added");
-      }
-      fetchAmenities();
-    } catch (err) {
-      toast.error("Save failed");
-    }
+
+const handleSave = async () => {
+  if (!projectId) {
+    console.error("❌ Project ID is missing");
+    return;
+  }
+
+  console.log("✅ Save clicked with Project ID:", projectId);
+
+  const payload = {
+    project_id: projectId,
+    infrastructure,
+    features,
   };
 
-  const handleDelete = async () => {
-    if (!amenitiesId) return;
-    try {
-      await deleteAmenities(amenitiesId);
-      toast.success("Deleted successfully");
-      setAmenitiesId(null);
-      setInfrastructure([{ title: "", description: "" }]);
-      setFeatures([{ feature: "" }]);
-    } catch (err) {
-      toast.error("Delete failed");
-    }
-  };
+  try {
+    await createAmenities(payload); // ✅ Send complete payload
+    alert("Saved successfully");
+    await fetchData(); // ✅ Re-fetch data so form shows updated items
+  } catch (err) {
+    console.error("❌ Save failed:", err);
+  }
+};
+
+
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-3xl font-bold text-gray-900 mb-6">
-          🏢 Manage Amenities
-        </h2>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold mb-4">🏗️ Manage Amenities</h2>
 
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Infrastructure</h3>
-            {infrastructure.map((item, idx) => (
-              <div key={idx} className="flex gap-3 items-center mt-2">
-                <div className="w-1/3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Enter title"
-                    value={item.title}
-                    onChange={(e) => handleInfraChange(idx, "title", e.target.value)}
-                  />
-                </div>
-                <div className="w-2/3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Enter description"
-                    value={item.description}
-                    onChange={(e) => handleInfraChange(idx, "description", e.target.value)}
-                  />
-                </div>
-                <button
-                  onClick={() => removeInfra(idx)}
-                  className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-colors"
-                >
-                  🗑
-                </button>
-              </div>
-            ))}
+      <div>
+        <h3 className="font-bold mb-2">Infrastructure</h3>
+        {infrastructure.map((item, index) => (
+          <div key={index} className="flex gap-3 mb-2">
+            <input
+              type="text"
+              placeholder="Enter title"
+              value={item.title}
+              onChange={(e) =>
+                handleInfraChange(index, "title", e.target.value)
+              }
+              className="border p-2 w-1/2"
+            />
+            <input
+              type="text"
+              placeholder="Enter description"
+              value={item.description}
+              onChange={(e) =>
+                handleInfraChange(index, "description", e.target.value)
+              }
+              className="border p-2 w-1/2"
+            />
             <button
-              onClick={addInfra}
-              className="mt-3 text-green-600 hover:text-green-800 font-medium transition-colors"
+              onClick={() => handleInfraDelete(index)}
+              className="text-white bg-black px-3 py-1"
             >
-              + Add Infrastructure
+              🗑️
             </button>
           </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Features</h3>
-            {features.map((item, idx) => (
-              <div key={idx} className="flex gap-3 items-center mt-2">
-                <div className="w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Feature
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Enter feature"
-                    value={item.feature}
-                    onChange={(e) => handleFeatureChange(idx, e.target.value)}
-                  />
-                </div>
-                <button
-                  onClick={() => removeFeature(idx)}
-                  className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-colors"
-                >
-                  🗑
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={addFeature}
-              className="mt-3 text-blue-600 hover:text-blue-800 font-medium transition-colors"
-            >
-              + Add Feature
-            </button>
-          </div>
-
-          <div className="flex gap-4 mt-6">
-            <button
-              onClick={handleSave}
-              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-            >
-              Save
-            </button>
-            {amenitiesId && (
-              <button
-                onClick={handleDelete}
-                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
-            )}
-          </div>
-        </div>
+        ))}
+        <button
+          onClick={handleAddInfrastructure}
+          className="bg-green-900 text-white px-4 py-2 mt-2"
+        >
+          + Add Infrastructure
+        </button>
       </div>
+
+      <div>
+        <h3 className="font-bold mb-2">Features</h3>
+        {features.map((item, index) => (
+          <div key={index} className="flex gap-3 mb-2">
+            <input
+              type="text"
+              placeholder="Enter feature"
+              value={item.feature}
+              onChange={(e) => handleFeatureChange(index, e.target.value)}
+              className="border p-2 w-full"
+            />
+            <button
+              onClick={() => handleFeatureDelete(index)}
+              className="text-white bg-black px-3 py-1"
+            >
+              🗑️
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={handleAddFeature}
+          className="bg-blue-900 text-white px-4 py-2 mt-2"
+        >
+          + Add Feature
+        </button>
+      </div>
+
+      <button
+        onClick={handleSave}
+        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+      >
+        Save
+      </button>
     </div>
   );
-};
+});
 
 export default ProjectAmenitiesCrud;

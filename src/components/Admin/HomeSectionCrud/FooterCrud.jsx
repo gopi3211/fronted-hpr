@@ -25,9 +25,14 @@ const FooterCrud = () => {
         setFooter([res.data.data]);
         setForm({ ...res.data.data, logo: null });
         setEditingId(res.data.data.id);
+      
+    setPreviewLogo(res.data.data.logo_url || null);
+
+
+
       }
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("[FETCH ERROR] Footer:", err);
     }
   };
 
@@ -77,14 +82,18 @@ const FooterCrud = () => {
       setEditingId(null);
       fetchFooter();
     } catch (err) {
-      console.error("Submit error:", err);
+      console.error("[SUBMIT ERROR] Footer:", err);
     }
   };
 
   const handleEdit = (item) => {
     setForm({ ...item, logo: null });
-    setPreviewLogo(`data:image/png;base64,${item.logo}`);
     setEditingId(item.id);
+    setPreviewLogo(
+      item.logo
+        ? `${import.meta.env.VITE_API_BASE_URL}/uploads/footer-logos/${item.logo}`
+        : null
+    );
   };
 
   const handleDelete = async (id) => {
@@ -93,7 +102,7 @@ const FooterCrud = () => {
         await axios.delete(`${API}/${id}`);
         fetchFooter();
       } catch (err) {
-        console.error("Delete error:", err);
+        console.error("[DELETE ERROR] Footer:", err);
       }
     }
   };
@@ -105,40 +114,32 @@ const FooterCrud = () => {
           Footer Management
         </h2>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            { name: "tagline", placeholder: "Tagline" },
-            { name: "address", placeholder: "Address" },
-            { name: "phone", placeholder: "Phone" },
-            { name: "email", placeholder: "Email" },
-            { name: "facebook", placeholder: "Facebook URL" },
-            { name: "instagram", placeholder: "Instagram URL" },
-            { name: "linkedin", placeholder: "LinkedIn URL" },
-          ].map((field) => (
-            <div key={field.name}>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-xl shadow-lg p-6 mb-8 grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          {["tagline", "address", "phone", "email", "facebook", "instagram", "linkedin"].map((field) => (
+            <div key={field}>
               <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
-                {field.placeholder}
+                {field}
               </label>
               <input
                 type="text"
-                name={field.name}
-                placeholder={field.placeholder}
-                value={form[field.name] || ""}
+                name={field}
+                value={form[field] || ""}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full p-3 border border-gray-300 rounded-md"
               />
             </div>
           ))}
+
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Logo
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Logo</label>
             <input
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full p-2 border border-gray-300 rounded-md bg-white"
+              className="w-full"
             />
             {previewLogo && (
               <img
@@ -147,23 +148,18 @@ const FooterCrud = () => {
                 className="mt-3 w-24 h-12 object-contain rounded-md"
               />
             )}
-            {form.logo && (
-              <p className="text-sm text-gray-600 mt-2">Selected: {form.logo.name}</p>
-            )}
           </div>
+
           <button
             type="submit"
-            className={`md:col-span-2 py-2 rounded-md font-semibold text-white ${
-              editingId
-                ? "bg-yellow-600 hover:bg-yellow-700"
-                : "bg-green-600 hover:bg-green-700"
-            } transition-colors duration-200`}
+            className={`md:col-span-2 py-2 px-4 rounded-md font-semibold text-white ${
+              editingId ? "bg-yellow-600" : "bg-green-600"
+            }`}
           >
             {editingId ? "Update Footer" : "Add Footer"}
           </button>
         </form>
 
-        {/* Footer Cards */}
         {footer.length === 0 ? (
           <p className="text-gray-500 text-sm text-center">No footer data available.</p>
         ) : (
@@ -171,47 +167,36 @@ const FooterCrud = () => {
             {footer.map((item) => (
               <div
                 key={item.id}
-                className="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex justify-between items-center"
+                className="bg-white p-4 rounded-lg shadow-md flex justify-between items-center"
               >
                 <div>
                   <p className="text-lg font-semibold text-gray-900">{item.tagline}</p>
                   <p className="text-sm text-gray-600">{item.address}</p>
                   <p className="text-sm text-gray-600">{item.phone} | {item.email}</p>
                   <div className="text-sm text-blue-600 space-x-4 mt-2">
-                    {item.facebook && (
-                      <a href={item.facebook} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                        Facebook
-                      </a>
-                    )}
-                    {item.instagram && (
-                      <a href={item.instagram} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                        Instagram
-                      </a>
-                    )}
-                    {item.linkedin && (
-                      <a href={item.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                        LinkedIn
-                      </a>
-                    )}
+                    {item.facebook && <a href={item.facebook}>Facebook</a>}
+                    {item.instagram && <a href={item.instagram}>Instagram</a>}
+                    {item.linkedin && <a href={item.linkedin}>LinkedIn</a>}
                   </div>
-                  {item.logo && (
-                    <img
-                      src={`data:image/png;base64,${item.logo}`}
-                      alt="Footer Logo"
-                      className="mt-3 w-24 h-12 object-contain rounded-md"
-                    />
-                  )}
+{item.logo_url && (
+  <img
+    src={item.logo_url}
+    alt="Footer Logo"
+    className="mt-3 w-24 h-12 object-contain rounded-md"
+  />
+)}
+
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(item)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                    className="bg-blue-600 text-white px-3 py-1 rounded-md"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                    className="bg-red-600 text-white px-3 py-1 rounded-md"
                   >
                     Delete
                   </button>

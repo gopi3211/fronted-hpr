@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
@@ -6,33 +6,31 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 
-const HeroCarousel = () => {
+const HeroCarousel = React.memo(() => {
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
+  const dataRef = useRef(null); // ✅ 1. useRef to cache
+
   const API = import.meta.env.VITE_API_BASE_URL + "/hero-carousel";
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api/v1", "");
 
   useEffect(() => {
     const fetchSlides = async () => {
+      if (dataRef.current) {
+        setSlides(dataRef.current);
+        setLoading(false);
+        return;
+      }
       try {
         const res = await axios.get(API);
-        const formatted = res.data?.data?.map((slide) => {
-          const blob = new Blob([new Uint8Array(slide.image.data)], {
-            type: "image/jpeg",
-          });
-          return {
-            heading: slide.heading,
-            subheading: slide.subheading,
-            image: URL.createObjectURL(blob),
-          };
-        }) || [];
-        setSlides(formatted);
+        dataRef.current = res.data?.data || [];
+        setSlides(dataRef.current);
       } catch (err) {
         console.error("Error fetching slides", err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchSlides();
   }, []);
 
@@ -58,7 +56,9 @@ const HeroCarousel = () => {
           <SwiperSlide key={idx}>
             <div
               className="w-full h-full bg-cover bg-center relative"
-              style={{ backgroundImage: `url(${slide.image})` }}
+              style={{
+                backgroundImage: `url(${BASE_URL}/uploads/images/${slide.image})`, // ✅ 2. Static URL
+              }}
             >
               <div className="absolute inset-0 bg-black/50 z-10" />
               <div className="relative z-20 h-full flex flex-col justify-center items-center text-center text-white px-4">
@@ -75,6 +75,6 @@ const HeroCarousel = () => {
       </Swiper>
     </div>
   );
-};
+});
 
 export default HeroCarousel;

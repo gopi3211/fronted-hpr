@@ -1,18 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   addGalleryImage,
   getGalleryByProjectId,
   deleteGalleryImage,
 } from '../../../../services/hprProjectsService';
 
-const ProjectGalleryCrud = ({ projectId }) => {
+const ProjectGalleryCrud = React.memo(({ projectId }) => {
   const [images, setImages] = useState([]);
   const [file, setFile] = useState(null);
   const [workDate, setWorkDate] = useState('');
   const [description, setDescription] = useState('');
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    if (projectId) fetchGallery();
+    if (projectId && !hasFetched.current) {
+      fetchGallery();
+      hasFetched.current = true;
+    }
   }, [projectId]);
 
   const fetchGallery = async () => {
@@ -20,8 +24,8 @@ const ProjectGalleryCrud = ({ projectId }) => {
       const res = await getGalleryByProjectId(projectId);
       const formatted = res.data?.map(item => ({
         ...item,
-        image_url: item.image_blob
-          ? `data:image/jpeg;base64,${item.image_blob}`
+        image_url: item.image_filename
+          ? `${import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')}/uploads/project-images/${item.image_filename}`
           : null,
       })) || [];
       setImages(formatted);
@@ -30,22 +34,28 @@ const ProjectGalleryCrud = ({ projectId }) => {
     }
   };
 
+  const resetForm = () => {
+    setWorkDate('');
+    setDescription('');
+    setFile(null);
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.value = '';
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file || !workDate || !description) return alert("All fields required");
+    if (!workDate || !description) return alert("All fields required");
 
     const formData = new FormData();
     formData.append('project_id', projectId);
     formData.append('work_date', workDate);
     formData.append('description', description);
-    formData.append('image', file);
+    if (file) formData.append('image', file);
 
     try {
       await addGalleryImage(formData);
-      setFile(null);
-      setWorkDate('');
-      setDescription('');
-      fetchGallery();
+      resetForm();
+      setTimeout(fetchGallery, 300); // optional delay to ensure updated data
     } catch (err) {
       console.error('Upload error:', err);
     }
@@ -72,48 +82,47 @@ const ProjectGalleryCrud = ({ projectId }) => {
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 items-end"
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Work Date
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Work Date</label>
             <input
               type="date"
               value={workDate}
               onChange={(e) => setWorkDate(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full p-3 border border-gray-300 rounded-md bg-white"
               required
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <input
               type="text"
               placeholder="Enter work description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full p-3 border border-gray-300 rounded-md bg-white"
               required
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload Image
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image</label>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => setFile(e.target.files[0])}
+              id="fileInput"
               className="w-full p-2 border border-gray-300 rounded-md bg-white"
-              required
             />
           </div>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-          >
-            Upload
-          </button>
+
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Upload
+            </button>
+          </div>
         </form>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -126,6 +135,7 @@ const ProjectGalleryCrud = ({ projectId }) => {
                 <img
                   src={img.image_url}
                   alt="Gallery"
+                  loading="lazy"
                   className="w-full h-32 object-cover rounded-md mb-2"
                 />
               ) : (
@@ -137,18 +147,20 @@ const ProjectGalleryCrud = ({ projectId }) => {
               <p className="text-xs text-gray-500">
                 {new Date(img.work_date).toLocaleDateString()}
               </p>
-              <button
-                onClick={() => handleDelete(img.id)}
-                className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                Delete
-              </button>
+              <div className="absolute top-2 right-2 flex flex-col gap-1">
+                <button
+                  onClick={() => handleDelete(img.id)}
+                  className="bg-red-600 text-white px-2 py-1 text-xs rounded-md"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </div>
     </div>
   );
-};
+});
 
 export default ProjectGalleryCrud;

@@ -1,21 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
-const MissionStatement = () => {
+const MissionStatement = React.memo(() => {
   const [mission, setMission] = useState({ heading: "", description: "" });
+  const dataRef = useRef(null);
 
   const API = import.meta.env.VITE_API_BASE_URL + "/mission";
 
   useEffect(() => {
     const fetchMission = async () => {
+      if (dataRef.current) {
+        setMission(dataRef.current);
+        return;
+      }
       try {
         const res = await axios.get(API);
+        dataRef.current = res.data.data;
         setMission(res.data.data);
       } catch (err) {
         console.error("Failed to fetch mission statement", err);
       }
     };
-
     fetchMission();
   }, []);
 
@@ -31,6 +36,6 @@ const MissionStatement = () => {
       </div>
     </section>
   );
-};
+});
 
 export default MissionStatement;

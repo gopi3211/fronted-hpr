@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   getHomeByProjectId,
   createHome,
@@ -6,15 +6,19 @@ import {
   deleteHome,
 } from '../../../../services/hprProjectsService';
 
-const ProjectHomeCrud = ({ projectId }) => {
+const ProjectHomeCrud = React.memo(({ projectId }) => {
   const [homeData, setHomeData] = useState(null);
   const [form, setForm] = useState({ title: '', description: '' });
   const [brochureFile, setBrochureFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const hasFetched = useRef(false); // ✅ prevent repeated fetch
 
   useEffect(() => {
-    if (projectId) fetchHomeData();
+    if (projectId && !hasFetched.current) {
+      fetchHomeData();
+      hasFetched.current = true;
+    }
   }, [projectId]);
 
   const fetchHomeData = async () => {
@@ -53,7 +57,7 @@ const ProjectHomeCrud = ({ projectId }) => {
         await createHome(formData);
       }
 
-      fetchHomeData();
+      await fetchHomeData();
       setBrochureFile(null);
       setImageFile(null);
     } catch (err) {
@@ -74,21 +78,21 @@ const ProjectHomeCrud = ({ projectId }) => {
     }
   };
 
-  const getImagePreview = () => {
-    if (imageFile) return URL.createObjectURL(imageFile);
-    if (homeData?.image) return `data:image/jpeg;base64,${homeData.image}`;
-    return null;
-  };
+const getImagePreview = () => {
+  if (imageFile) return URL.createObjectURL(imageFile);
+  if (homeData?.image_filename)
+    return `${import.meta.env.VITE_API_BASE_URL.replace("/api/v1", "")}/uploads/project-images/${homeData.image_filename}`;
+  return null;
+};
 
-  const getPdfBlobUrl = () => {
-    if (brochureFile) return URL.createObjectURL(brochureFile);
-    if (homeData?.brochure) {
-      const binary = Uint8Array.from(homeData.brochure.data);
-      const blob = new Blob([binary], { type: "application/pdf" });
-      return URL.createObjectURL(blob);
-    }
-    return null;
-  };
+
+const getPdfUrl = () => {
+  if (brochureFile) return URL.createObjectURL(brochureFile);
+  if (homeData?.brochure_filename)
+    return `${import.meta.env.VITE_API_BASE_URL.replace("/api/v1", "")}/uploads/project-brochures/${homeData.brochure_filename}`;
+  return null;
+};
+
 
   return (
     <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
@@ -107,7 +111,7 @@ const ProjectHomeCrud = ({ projectId }) => {
               placeholder="Enter title"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full p-3 border border-gray-300 rounded-md"
               required
             />
           </div>
@@ -120,7 +124,7 @@ const ProjectHomeCrud = ({ projectId }) => {
               placeholder="Enter description"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full p-3 border border-gray-300 rounded-md"
               required
               rows={4}
             />
@@ -135,7 +139,7 @@ const ProjectHomeCrud = ({ projectId }) => {
                 type="file"
                 accept="application/pdf"
                 onChange={(e) => setBrochureFile(e.target.files[0])}
-                className="w-full p-2 border border-gray-300 rounded-md bg-white"
+                className="w-full p-2 border border-gray-300 rounded-md"
               />
               {brochureFile && (
                 <p className="text-sm text-gray-600 mt-2">
@@ -152,12 +156,13 @@ const ProjectHomeCrud = ({ projectId }) => {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setImageFile(e.target.files[0])}
-                className="w-full p-2 border border-gray-300 rounded-md bg-white"
+                className="w-full p-2 border border-gray-300 rounded-md"
               />
               {getImagePreview() && (
                 <img
                   src={getImagePreview()}
                   alt="Preview"
+                  loading="lazy" // ✅ lazy load
                   className="mt-2 w-48 h-32 object-cover border rounded-md"
                 />
               )}
@@ -167,7 +172,7 @@ const ProjectHomeCrud = ({ projectId }) => {
           <div className="flex gap-4 mt-6">
             <button
               type="submit"
-              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
             >
               {editingId ? 'Update' : 'Create'}
             </button>
@@ -175,7 +180,7 @@ const ProjectHomeCrud = ({ projectId }) => {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
               >
                 Delete
               </button>
@@ -195,12 +200,12 @@ const ProjectHomeCrud = ({ projectId }) => {
               <strong>Description:</strong> {homeData.description}
             </p>
 
-            {getPdfBlobUrl() && (
+            {getPdfUrl() && (
               <div className="mb-6">
                 <p className="text-gray-700 mb-2">
                   <strong>Brochure:</strong>{' '}
                   <a
-                    href={getPdfBlobUrl()}
+                    href={getPdfUrl()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 underline"
@@ -208,13 +213,6 @@ const ProjectHomeCrud = ({ projectId }) => {
                     📄 View Brochure
                   </a>
                 </p>
-                <embed
-                  src={getPdfBlobUrl()}
-                  type="application/pdf"
-                  width="100%"
-                  height="400px"
-                  className="border rounded-md"
-                />
               </div>
             )}
 
@@ -226,6 +224,7 @@ const ProjectHomeCrud = ({ projectId }) => {
                 <img
                   src={getImagePreview()}
                   alt="Saved"
+                  loading="lazy"
                   className="w-48 h-32 object-cover border rounded-md"
                 />
               </div>
@@ -235,6 +234,6 @@ const ProjectHomeCrud = ({ projectId }) => {
       </div>
     </div>
   );
-};
+});
 
 export default ProjectHomeCrud;

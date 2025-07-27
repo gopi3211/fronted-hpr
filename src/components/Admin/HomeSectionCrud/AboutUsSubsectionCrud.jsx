@@ -1,35 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
-const AboutUsSubsectionCrud = () => {
+const AboutUsSubsectionCrud = React.memo(() => {
   const API = import.meta.env.VITE_API_BASE_URL + "/about-us/sections";
-
   const [entries, setEntries] = useState([]);
   const [form, setForm] = useState({ heading: '', description: '', image: null });
   const [editingId, setEditingId] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const hasFetched = useRef(false);
 
   const fetchEntries = async () => {
+    setLoading(true);
     try {
       const res = await axios.get(API);
       setEntries(res.data);
     } catch (err) {
       console.error("Fetch error:", err);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchEntries();
+    if (!hasFetched.current) {
+      fetchEntries();
+      hasFetched.current = true;
+    }
   }, []);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'image') {
       const file = files[0];
-      setForm({ ...form, image: file });
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl); // ✅ Cleanup old blob
+      }
+      setForm((prev) => ({ ...prev, image: file }));
       if (file) setPreviewUrl(URL.createObjectURL(file));
     } else {
-      setForm({ ...form, [name]: value });
+      setForm((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -47,9 +56,7 @@ const AboutUsSubsectionCrud = () => {
         await axios.post(API, formData);
       }
       fetchEntries();
-      setForm({ heading: '', description: '', image: null });
-      setPreviewUrl(null);
-      setEditingId(null);
+      resetForm();
     } catch (err) {
       console.error("Submit error:", err);
     }
@@ -57,8 +64,12 @@ const AboutUsSubsectionCrud = () => {
 
   const handleEdit = (entry) => {
     setEditingId(entry.id);
-    setForm({ heading: entry.heading, description: entry.description, image: null });
-    setPreviewUrl(entry.image);
+    setForm({
+      heading: entry.heading,
+      description: entry.description,
+      image: null,
+    });
+    if (entry.image) setPreviewUrl(entry.image);
   };
 
   const handleDelete = async (id) => {
@@ -70,107 +81,104 @@ const AboutUsSubsectionCrud = () => {
     }
   };
 
+  const resetForm = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl); // ✅ Clean preview blob
+    }
+    setForm({ heading: '', description: '', image: null });
+    setPreviewUrl(null);
+    setEditingId(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-md">
         <h2 className="text-3xl font-extrabold text-gray-900 mb-6">
           {editingId ? "Edit Subsection" : "Create Subsection"}
         </h2>
-
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Heading</label>
-            <input
-              type="text"
-              name="heading"
-              value={form.heading}
-              onChange={handleChange}
-              required
-              placeholder="Enter heading"
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-lime-500 focus:border-lime-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              required
-              placeholder="Enter description"
-              rows={5}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-lime-500 focus:border-lime-500 resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
-            <input
-              type="file"
-              name="image"
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-lime-100 file:text-lime-700 file:font-semibold hover:file:bg-lime-200"
-            />
-          </div>
-
+          <input
+            name="heading"
+            value={form.heading}
+            onChange={handleChange}
+            required
+            placeholder="Heading"
+            className="w-full px-4 py-3 border rounded-lg"
+          />
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            required
+            rows={4}
+            placeholder="Description"
+            className="w-full px-4 py-3 border rounded-lg"
+          />
+          <input type="file" name="image" onChange={handleChange} accept="image/*" />
           {previewUrl && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Preview</label>
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full max-w-md h-60 object-cover rounded-lg border border-gray-100 shadow-sm"
-              />
-            </div>
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-full max-w-md h-60 object-cover rounded-lg mt-2"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/default-image.jpg";
+              }}
+            />
           )}
-
-          <div>
-            <button
-              type="submit"
-              className="px-6 py-3 bg-lime-600 text-white font-semibold rounded-lg hover:bg-lime-700 transition-all"
-            >
+          <div className="flex gap-4">
+            <button type="submit" className="px-6 py-3 bg-lime-600 text-white rounded-lg">
               {editingId ? "Update" : "Create"}
             </button>
+            {editingId && (
+              <button type="button" onClick={resetForm} className="px-6 py-3 bg-gray-400 text-white rounded-lg">
+                Cancel
+              </button>
+            )}
           </div>
         </form>
       </div>
 
-      {/* Entries Section */}
+      {/* Entries List */}
       <div className="max-w-4xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow-md">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6">Existing Subsections</h3>
-        {entries.length === 0 ? (
-          <p className="text-gray-500 text-center">No entries found.</p>
+        <h3 className="text-2xl font-bold mb-4">Existing Subsections</h3>
+        {loading ? (
+          <p className="text-center text-gray-600">Loading subsections...</p>
+        ) : entries.length === 0 ? (
+          <p>No entries found.</p>
         ) : (
           <div className="space-y-4">
             {entries.map((entry) => (
-              <div
-                key={entry.id}
-                className="flex justify-between items-center p-4 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all"
-              >
+              <div key={entry.id} className="flex justify-between items-center border p-4 rounded-lg">
                 <div className="flex gap-4 items-start">
                   {entry.image && (
                     <img
                       src={entry.image}
-                      alt="entry"
-                      className="w-24 h-24 object-cover rounded border border-gray-200"
+                      alt="sub"
+                      className="w-24 h-24 object-cover rounded border"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "/default-image.jpg";
+                      }}
                     />
                   )}
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900">{entry.heading}</h4>
-                    <p className="text-sm text-gray-600 mt-1">{entry.description}</p>
+                    <h4 className="text-lg font-semibold">{entry.heading}</h4>
+                    <p className="text-sm text-gray-600">{entry.description}</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(entry)}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(entry.id)}
-                    className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700"
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg"
                   >
                     Delete
                   </button>
@@ -182,6 +190,6 @@ const AboutUsSubsectionCrud = () => {
       </div>
     </div>
   );
-};
+});
 
 export default AboutUsSubsectionCrud;

@@ -1,20 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 const MissionStatementCrud = () => {
   const [heading, setHeading] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const dataRef = useRef(null); // ✅ Cache mission data
 
   const API_URL = import.meta.env.VITE_API_BASE_URL + "/mission";
 
-  // Fetch existing mission statement on mount
+  // ✅ Fetch and cache mission data
   const fetchMission = async () => {
+    if (dataRef.current) {
+      const cached = dataRef.current;
+      setHeading(cached.heading);
+      setDescription(cached.description);
+      return;
+    }
+
     try {
       const res = await axios.get(API_URL);
       if (res.data?.data) {
-        setHeading(res.data.data.heading);
-        setDescription(res.data.data.description);
+        const { heading, description } = res.data.data;
+        setHeading(heading);
+        setDescription(description);
+        dataRef.current = res.data.data; // ✅ Save to cache
       }
     } catch (err) {
       console.error("Failed to fetch mission statement", err);
@@ -25,6 +35,7 @@ const MissionStatementCrud = () => {
     fetchMission();
   }, []);
 
+  // ✅ Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!heading || !description) {
@@ -35,6 +46,7 @@ const MissionStatementCrud = () => {
     setLoading(true);
     try {
       await axios.put(API_URL, { heading, description });
+      dataRef.current = { heading, description }; // ✅ Update cache
       alert("Mission statement updated successfully!");
     } catch (err) {
       console.error("Failed to update mission", err);

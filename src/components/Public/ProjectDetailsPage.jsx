@@ -10,6 +10,8 @@ import {
 import ProjectAmenitiesPublic from "./ProjectAmenitiesPublic";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const IMAGE_BASE_URL = API_BASE_URL.replace("/api/v1", "");
 const tabs = ["Home", "Gallery", "Plan", "Location", "Amenities"];
 
 const ProjectDetailsPage = () => {
@@ -60,18 +62,23 @@ const ProjectDetailsPage = () => {
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{home.title}</h3>
                 <p className="text-lg text-gray-600 mb-4">{home.description}</p>
-                {home.image && (
-                  <img
-                    src={`data:image/png;base64,${home.image}`}
-                    alt="Home"
-                    className="w-full max-w-2xl h-auto rounded-md shadow-sm mx-auto"
-                  />
+
+                {home.image_filename && (
+                <img
+  src={`${IMAGE_BASE_URL}/uploads/project-images/${home.image_filename}`}
+  alt="Home"
+  className="w-full max-w-2xl h-auto rounded-md shadow-sm mx-auto"
+  loading="lazy"
+/>
+
                 )}
-                {home.brochure_blob && (
+
+                {home.brochure_filename && (
                   <div className="mt-4 text-center">
-                    <a
-                      href={`data:application/pdf;base64,${home.brochure_blob}`}
-                      download="brochure.pdf"
+<a
+  href={`${IMAGE_BASE_URL}/uploads/project-brochures/${home.brochure_filename}`}
+  download="brochure.pdf"
+
                       className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors duration-200"
                     >
                       📄 Download Brochure
@@ -85,36 +92,47 @@ const ProjectDetailsPage = () => {
           <p className="text-gray-500 text-center py-8">Loading Home content...</p>
         );
 
-      case "Gallery":
-        return (
-          <div className="bg-white py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-5xl mx-auto">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-                Gallery Section
-              </h2>
-              {gallery.length === 0 ? (
-                <p className="text-gray-500 text-sm text-center">No gallery items available.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {gallery.map((item, index) => (
-                    <div
-                      key={index}
-                      className="bg-white rounded-lg shadow-md p-4 hover:shadow-xl transition-all duration-300"
-                    >
-                      <img
-                        src={`data:image/png;base64,${item.image_blob}`}
-                        alt="Gallery"
-                        className="w-full h-48 object-cover rounded-md mb-3"
-                      />
-                      <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">{item.work_date}</p>
-                    </div>
-                  ))}
+     case "Gallery":
+  return (
+    <div className="bg-white py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+          Gallery Section
+        </h2>
+        {gallery.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center">No gallery items available.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {gallery.map((item, index) => {
+              const baseURL = API_BASE_URL.replace("/api/v1", "");
+              const imageURL = item.image_filename
+                ? `${baseURL}/uploads/project-images/${item.image_filename}`
+                : "/default-image.jpg";
+
+              console.log("📷 GALLERY IMG URL:", imageURL); // ✅ debug
+
+              return (
+                <div
+                  key={index}
+                  className="bg-white rounded-lg shadow-md p-4 hover:shadow-xl transition-all duration-300"
+                >
+                  <img
+                    src={imageURL}
+                    alt="Gallery"
+                    className="w-full h-48 object-cover rounded-md mb-3"
+                    loading="lazy"
+                  />
+                  <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
+                  <p className="text-xs text-gray-500 mt-1">{item.work_date}</p>
                 </div>
-              )}
-            </div>
+              );
+            })}
           </div>
-        );
+        )}
+      </div>
+    </div>
+  );
+
 
       case "Plan":
         return plan ? (
@@ -125,24 +143,14 @@ const ProjectDetailsPage = () => {
               </h2>
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{plan.description}</h3>
-                {plan.plan_blob?.data ? (() => {
-                  try {
-                    const base64 = btoa(
-                      new Uint8Array(plan.plan_blob.data)
-                        .reduce((acc, byte) => acc + String.fromCharCode(byte), "")
-                    );
-                    return (
-                      <img
-                        src={`data:image/png;base64,${base64}`}
-                        alt="Plan"
-                        className="w-full max-w-2xl h-auto rounded-md shadow-sm mx-auto"
-                      />
-                    );
-                  } catch (err) {
-                    console.error("Plan image render failed:", err);
-                    return <p className="text-red-600 text-center">Failed to load plan image</p>;
-                  }
-                })() : (
+                {plan.plan_filename ? (
+           <img
+  src={`${IMAGE_BASE_URL}/uploads/project-images/${plan.plan_filename}`}
+                    alt="Plan"
+                    className="w-full max-w-2xl h-auto rounded-md shadow-sm mx-auto"
+                    loading="lazy"
+                  />
+                ) : (
                   <p className="text-gray-500 text-sm text-center italic">No plan uploaded.</p>
                 )}
               </div>

@@ -36,10 +36,7 @@ const TestimonialCarousel = () => {
         ) : (
           <Swiper
             modules={[Autoplay, Pagination]}
-            autoplay={{
-              delay: 2000,
-              disableOnInteraction: false,
-            }}
+            autoplay={{ delay: 2000, disableOnInteraction: false }}
             pagination={{ clickable: true }}
             loop={true}
             className="max-w-3xl mx-auto"
@@ -48,18 +45,10 @@ const TestimonialCarousel = () => {
               <SwiperSlide key={t.id}>
                 <div className="bg-white rounded-2xl shadow-2xl hover:shadow-3xl transition duration-500 text-center py-10 px-6 mx-4">
                   <img
-                    src={
-                      t.image
-                        ? `data:image/jpeg;base64,${t.image}`
-                        : '/default-avatar.png'
-                    }
+                    src={t.image_url || '/default-avatar.png'}
                     alt={t.name}
                     className="mx-auto rounded-full border-4 border-green-400 shadow-md mb-6"
-                    style={{
-                      width: '100px',
-                      height: '100px',
-                      objectFit: 'cover',
-                    }}
+                    style={{ width: '100px', height: '100px', objectFit: 'cover' }}
                   />
                   <h5 className="text-xl font-bold mb-2 text-[#017DB9]">{t.name}</h5>
                   <p className="text-gray-700 text-md">{t.message}</p>

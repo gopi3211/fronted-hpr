@@ -14,30 +14,42 @@ const AboutUsPage = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
 
   useEffect(() => {
-    AOS.init({ duration: 1000 });
+   AOS.init({
+  duration: 1000,
+  disable: 'mobile', // ✅ smoother on phones
+});
+
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res1 = await axios.get(`${API_BASE_URL}/about-us`);
-        const res2 = await axios.get(`${API_BASE_URL}/about-us/sections`);
-        const res3 = await axios.get(`${API_BASE_URL}/partners`);
 
-        if (res1.data.length > 0) {
-          setAboutData(res1.data[res1.data.length - 1]);
-        }
-        setSubsections(res2.data);
-        setPartners(Array.isArray(res3.data) ? res3.data : []);
-      } catch (error) {
-        console.error("Error fetching About Us data:", error);
-      } finally {
-        setLoading(false);
+
+
+useEffect(() => {
+  setLoading(true); // ✅ Show spinner immediately on mount
+
+  const fetchData = async () => {
+    try {
+      const [res1, res2, res3] = await Promise.all([
+        axios.get(`${API_BASE_URL}/about-us`),
+        axios.get(`${API_BASE_URL}/about-us/sections`),
+        axios.get(`${API_BASE_URL}/partners`),
+      ]);
+
+      if (res1.data.length > 0) {
+        setAboutData(res1.data[res1.data.length - 1]);
       }
-    };
+      setSubsections(res2.data);
+      setPartners(Array.isArray(res3.data) ? res3.data : []);
+    } catch (error) {
+      console.error("Error fetching About Us data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-  }, []);
+  fetchData();
+}, []);
+
 
 if (loading) {
   return (
@@ -48,22 +60,24 @@ if (loading) {
 }
   if (!aboutData) return <div className="pt-24 text-center text-red-500">No data found.</div>;
 
-  const imageUrl = imageError
-    ? '/default-image.jpg'
-    : aboutData.image?.startsWith("data:image")
-      ? aboutData.image
-      : `data:image/jpeg;base64,${aboutData.image}`;
+const imageUrl = aboutData.image && !imageError
+  ? aboutData.image
+  : '/default-image.jpg';
+
+
 
   return (
     <div className="pt-24 bg-gray-50 font-sans">
       {/* ✅ Hero Banner */}
       <section className="relative h-[85vh] md:h-[90vh] overflow-hidden -mt-24" data-aos="zoom-in">
-        <img
-          src={imageUrl}
-          alt="Banner"
-          className="absolute top-0 left-0 w-full h-full object-cover brightness-75"
-          onError={() => setImageError(true)}
-        />
+   <img
+  src={imageUrl}
+  alt="Banner"
+  onError={() => setImageError(true)}
+  loading="lazy"
+  className="absolute top-0 left-0 w-full h-full object-cover brightness-75"
+/>
+
         <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-center text-white text-center px-6">
           <h1 className="text-4xl md:text-6xl font-extrabold drop-shadow-xl mb-4">
             {aboutData.heading}
@@ -86,9 +100,8 @@ if (loading) {
       <div className="px-4 md:px-16 space-y-16 py-16 bg-white">
         {subsections.map((item, idx) => {
           const isEven = idx % 2 === 0;
-          const subsectionImg = item.image?.startsWith("data:image")
-            ? item.image
-            : `data:image/jpeg;base64,${item.image}`;
+const subsectionImg = item.image || '/default-image.jpg';
+
 
           return (
             <div
@@ -98,11 +111,14 @@ if (loading) {
             >
               {item.image && (
                 <div className="md:w-1/2 w-full h-64 md:h-[320px]">
-                  <img
-                    src={subsectionImg}
-                    alt={item.heading}
-                    className="w-full h-full object-cover"
-                  />
+                <img
+  src={subsectionImg}
+  alt={item.heading}
+  className="w-full h-full object-cover"
+  loading="lazy"
+  onError={(e) => (e.target.src = "/default-image.jpg")}
+/>
+
                 </div>
               )}
               <div className="md:w-1/2 w-full p-6 md:p-10 text-gray-800">

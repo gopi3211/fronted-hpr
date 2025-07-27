@@ -27,9 +27,7 @@ const TestimonialsCrud = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
-    if (file) {
-      setPreview(URL.createObjectURL(file));
-    }
+    if (file) setPreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
@@ -69,7 +67,7 @@ const TestimonialsCrud = () => {
     setEditingId(item.id);
     setName(item.name);
     setMessage(item.message);
-    setPreview(`data:image/jpeg;base64,${item.image}`);
+    setPreview(item.image_url || null);
   };
 
   const handleDelete = async (id) => {
@@ -172,7 +170,7 @@ const TestimonialsCrud = () => {
               >
                 <div className="flex items-center gap-3 mb-3">
                   <img
-                    src={`data:image/jpeg;base64,${item.image}`}
+                    src={item.image_url || "/default-avatar.png"}
                     alt={item.name}
                     className="w-14 h-14 rounded-full object-cover border border-gray-300"
                   />

@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   addPlan,
   getPlanByProjectId,
-  updatePlan,
   deletePlan,
 } from '../../../../services/hprProjectsService';
 
-const ProjectPlanCrud = ({ projectId }) => {
+const ProjectPlanCrud = React.memo(({ projectId }) => {
   const [plan, setPlan] = useState(null);
   const [form, setForm] = useState({ description: '', file: null });
-  const [editing, setEditing] = useState(false);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    if (projectId) fetchPlan();
+    if (projectId && !hasFetched.current) {
+      fetchPlan();
+      hasFetched.current = true;
+    }
   }, [projectId]);
 
   const fetchPlan = async () => {
@@ -21,19 +23,20 @@ const ProjectPlanCrud = ({ projectId }) => {
       const data = res.data;
 
       if (data) {
-        let base64Image = null;
+        const fileName = data.plan_filename; // ✅ fixed key
+        const fileUrl = fileName
+          ? `${import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')}/uploads/project-images/${fileName}`
 
-        if (data.plan_blob?.data) {
-          const uint8Array = new Uint8Array(data.plan_blob.data);
-          const binary = uint8Array.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
-          base64Image = `data:image/jpeg;base64,${btoa(binary)}`;
-        }
+          : null;
 
         setPlan({
           id: data.id,
           description: data.description,
-          image_url: base64Image,
+          file_name: fileName,
+          file_url: fileUrl,
         });
+
+        console.log("✅ Preview Plan URL:", fileUrl);
       } else {
         setPlan(null);
       }
@@ -45,26 +48,23 @@ const ProjectPlanCrud = ({ projectId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.description || !projectId || (!form.file && !editing)) {
-      alert('All fields required');
+    if (!form.description || !form.file) {
+      alert('Both description and file are required.');
       return;
     }
 
     const formData = new FormData();
     formData.append('description', form.description);
-    if (form.file) formData.append('plan', form.file);
-    if (!editing) formData.append('project_id', projectId);
+    formData.append('plan', form.file);
+    formData.append('project_id', projectId);
 
     try {
-      if (editing && plan?.id) {
-        await updatePlan(plan.id, formData);
-      } else {
-        await addPlan(formData);
-      }
+      await addPlan(formData);
       resetForm();
+      hasFetched.current = false; // ✅ allow re-fetch
       fetchPlan();
     } catch (err) {
-      console.error('Submit error:', err);
+      console.error('Add plan error:', err);
     }
   };
 
@@ -74,27 +74,20 @@ const ProjectPlanCrud = ({ projectId }) => {
       await deletePlan(plan.id);
       setPlan(null);
       resetForm();
+      hasFetched.current = false; // ✅ allow re-fetch
     } catch (err) {
-      console.error('Delete error:', err);
+      console.error('Delete plan error:', err);
     }
-  };
-
-  const handleEdit = () => {
-    setForm({ description: plan.description, file: null });
-    setEditing(true);
   };
 
   const resetForm = () => {
     setForm({ description: '', file: null });
-    setEditing(false);
   };
 
   return (
     <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-3xl font-bold text-gray-900 mb-6">
-          📐 Project Plan
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">📐 Project Plan</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4 mb-6">
           <div>
@@ -106,19 +99,20 @@ const ProjectPlanCrud = ({ projectId }) => {
               placeholder="Enter plan description"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full p-3 border border-gray-300 rounded-md"
               required
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload Plan (Image/PDF)
+              Upload Plan (Image or PDF)
             </label>
             <input
               type="file"
               accept="image/*,.pdf"
               onChange={(e) => setForm({ ...form, file: e.target.files[0] })}
-              className="w-full p-2 border border-gray-300 rounded-md bg-white"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              required
             />
             {form.file && (
               <p className="text-sm text-gray-600 mt-2">
@@ -127,35 +121,43 @@ const ProjectPlanCrud = ({ projectId }) => {
             )}
           </div>
           <button
-            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
             type="submit"
           >
-            {editing ? 'Update Plan' : 'Add Plan'}
+            Add Plan
           </button>
         </form>
 
         {plan && (
           <div className="bg-white p-4 rounded-lg shadow-md relative">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.description}</h3>
-            {plan.image_url ? (
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {plan.description}
+            </h3>
+
+            {plan.file_name?.endsWith('.pdf') ? (
+              <a
+                href={plan.file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                📄 View PDF Plan
+              </a>
+            ) : plan.file_url ? (
               <img
-                src={plan.image_url}
+                src={plan.file_url}
                 alt="Plan"
-                className="w-full h-48 object-cover rounded-md mb-2"
+                loading="lazy"
+                className="w-full h-48 object-contain rounded-md mb-2"
               />
             ) : (
               <p className="text-gray-500 text-sm">No plan available</p>
             )}
-            <div className="absolute top-3 right-3 flex gap-3">
-              <button
-                onClick={handleEdit}
-                className="text-blue-600 text-sm font-medium hover:text-blue-800 transition-colors"
-              >
-                Edit
-              </button>
+
+            <div className="absolute top-3 right-3">
               <button
                 onClick={handleDelete}
-                className="text-red-600 text-sm font-medium hover:text-red-800 transition-colors"
+                className="text-red-600 text-sm font-medium hover:text-red-800"
               >
                 Delete
               </button>
@@ -165,6 +167,6 @@ const ProjectPlanCrud = ({ projectId }) => {
       </div>
     </div>
   );
-};
+});
 
 export default ProjectPlanCrud;

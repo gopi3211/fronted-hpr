@@ -1,24 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { getAllProjects } from "../../services/hprProjectsService";
 import { Link } from "react-router-dom";
 import Footer from "../Home/Footer";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
-// 🔐 Safe base64 decoder
-const bufferToBase64 = (buffer) => {
-  try {
-    if (!buffer || !buffer.length) return "";
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-  } catch (err) {
-    console.error("base64 conversion error:", err);
-    return "";
-  }
-};
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const STATIC_BASE_URL = API_BASE_URL.replace("/api/v1", ""); // ✅ for static image access
 
 const HPRProjectsPublicPage = () => {
   const [ongoingProjects, setOngoingProjects] = useState([]);
@@ -26,15 +13,19 @@ const HPRProjectsPublicPage = () => {
   const [futureProjects, setFutureProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const hasFetched = useRef(false);
+
   useEffect(() => {
-    fetchProjects();
+    fetchProjects(); // initial load
+    const interval = setInterval(fetchProjects, 30000); // ✅ auto-refresh every 30s
+    return () => clearInterval(interval);
   }, []);
 
   const fetchProjects = async () => {
     try {
       setLoading(true);
       const res = await getAllProjects();
-      const data = res.data;
+      const data = res?.data?.data || res?.data || [];
 
       const ongoing = data.filter((p) => p.category?.toLowerCase() === "ongoing");
       const completed = data.filter((p) => p.category?.toLowerCase() === "completed");
@@ -51,9 +42,12 @@ const HPRProjectsPublicPage = () => {
   };
 
   const renderProjectCard = (project) => {
-    const imageBlob = project.logo_blob?.data || project.banner_blob?.data;
-    const imageSrc = imageBlob
-      ? `data:image/jpeg;base64,${bufferToBase64(imageBlob)}`
+    const isValid = (val) => typeof val === "string" && val.trim() !== "";
+
+    const imageSrc = isValid(project.logo_filename)
+      ? `${STATIC_BASE_URL}/uploads/project-images/${project.logo_filename}`
+      : isValid(project.banner_filename)
+      ? `${STATIC_BASE_URL}/uploads/project-images/${project.banner_filename}`
       : "/default-image.jpg";
 
     return (
@@ -64,6 +58,7 @@ const HPRProjectsPublicPage = () => {
         <img
           src={imageSrc}
           alt={project.name}
+          loading="lazy"
           className="w-full h-40 object-cover mb-4 rounded"
         />
         <h2 className="text-xl font-semibold mb-2">{project.name}</h2>
@@ -97,6 +92,15 @@ const HPRProjectsPublicPage = () => {
       <main className="flex-grow py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-6 text-center">Our Projects</h1>
+
+          <div className="text-center mb-6">
+            <button
+              onClick={fetchProjects}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            >
+              🔄 Refresh Projects
+            </button>
+          </div>
 
           {loading ? (
             <div className="flex justify-center items-center min-h-[50vh]">

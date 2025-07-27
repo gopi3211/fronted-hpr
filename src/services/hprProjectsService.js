@@ -21,6 +21,7 @@ export const deleteHome = (id) => axiosInstance.delete(`/hpr-projects/home/${id}
 export const addGalleryImage = (data) => axiosInstance.post(`/hpr-projects/gallery`, data);
 export const getGalleryByProjectId = (projectId) => axiosInstance.get(`/hpr-projects/gallery/${projectId}`);
 export const deleteGalleryImage = (id) => axiosInstance.delete(`/hpr-projects/gallery/${id}`);
+export const updateGalleryImage = (id, data) => axiosInstance.put(`/hpr-projects/gallery/${id}`, data);
 
 // -------------------- PLAN TAB --------------------
 export const addPlan = (data) => axiosInstance.post(`/hpr-projects/plan`, data);
