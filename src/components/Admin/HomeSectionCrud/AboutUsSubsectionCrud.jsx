@@ -3,10 +3,10 @@ import axios from 'axios';
 
 const AboutUsSubsectionCrud = React.memo(() => {
   const API = import.meta.env.VITE_API_BASE_URL + "/about-us/sections";
+
   const [entries, setEntries] = useState([]);
-  const [form, setForm] = useState({ heading: '', description: '', image: null });
+  const [form, setForm] = useState({ heading: '', description: '', image_url: '' });
   const [editingId, setEditingId] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const hasFetched = useRef(false);
 
@@ -29,31 +29,22 @@ const AboutUsSubsectionCrud = React.memo(() => {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === 'image') {
-      const file = files[0];
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl); // ✅ Cleanup old blob
-      }
-      setForm((prev) => ({ ...prev, image: file }));
-      if (file) setPreviewUrl(URL.createObjectURL(file));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("heading", form.heading);
-    formData.append("description", form.description);
-    if (form.image) formData.append("image", form.image);
-
     try {
+      if (!form.heading || !form.description || !form.image_url) {
+        alert("All fields are required.");
+        return;
+      }
+
       if (editingId) {
-        await axios.put(`${API}/${editingId}`, formData);
+        await axios.put(`${API}/${editingId}`, form);
       } else {
-        await axios.post(API, formData);
+        await axios.post(API, form);
       }
       fetchEntries();
       resetForm();
@@ -67,9 +58,8 @@ const AboutUsSubsectionCrud = React.memo(() => {
     setForm({
       heading: entry.heading,
       description: entry.description,
-      image: null,
+      image_url: entry.image || '',
     });
-    if (entry.image) setPreviewUrl(entry.image);
   };
 
   const handleDelete = async (id) => {
@@ -82,11 +72,7 @@ const AboutUsSubsectionCrud = React.memo(() => {
   };
 
   const resetForm = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl); // ✅ Clean preview blob
-    }
-    setForm({ heading: '', description: '', image: null });
-    setPreviewUrl(null);
+    setForm({ heading: '', description: '', image_url: '' });
     setEditingId(null);
   };
 
@@ -114,10 +100,20 @@ const AboutUsSubsectionCrud = React.memo(() => {
             placeholder="Description"
             className="w-full px-4 py-3 border rounded-lg"
           />
-          <input type="file" name="image" onChange={handleChange} accept="image/*" />
-          {previewUrl && (
+          <input
+            type="text"
+            name="image_url"
+            value={form.image_url}
+            onChange={handleChange}
+            placeholder="Image URL"
+            required
+            className="w-full px-4 py-3 border rounded-lg"
+          />
+
+          {/* ✅ Live Preview */}
+          {form.image_url && (
             <img
-              src={previewUrl}
+              src={form.image_url}
               alt="Preview"
               className="w-full max-w-md h-60 object-cover rounded-lg mt-2"
               loading="lazy"
@@ -127,6 +123,7 @@ const AboutUsSubsectionCrud = React.memo(() => {
               }}
             />
           )}
+
           <div className="flex gap-4">
             <button type="submit" className="px-6 py-3 bg-lime-600 text-white rounded-lg">
               {editingId ? "Update" : "Create"}
@@ -140,7 +137,7 @@ const AboutUsSubsectionCrud = React.memo(() => {
         </form>
       </div>
 
-      {/* Entries List */}
+      {/* ✅ Entries List */}
       <div className="max-w-4xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow-md">
         <h3 className="text-2xl font-bold mb-4">Existing Subsections</h3>
         {loading ? (

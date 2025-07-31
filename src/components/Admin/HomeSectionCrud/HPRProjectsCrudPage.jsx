@@ -37,7 +37,7 @@ const HPRProjectsCrudPage = () => {
           ))}
         </div>
 
-        {/* Category Filter only for PROJECT tab */}
+        {/* Category Filter (only for PROJECT tab) */}
         {activeTab === "PROJECT" && (
           <div className="flex gap-3 justify-center mb-6 flex-wrap">
             {["All", "Ongoing", "Completed", "Future"].map((cat) => (

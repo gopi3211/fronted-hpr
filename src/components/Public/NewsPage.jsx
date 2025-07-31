@@ -17,10 +17,9 @@ const NewsPage = () => {
       setNewsList(newsRes.data.data);
 
       const bannerRes = await getBanner();
-      const mime = bannerRes.headers["content-type"];
-      const blob = new Blob([bannerRes.data], { type: mime });
-      const imageURL = URL.createObjectURL(blob);
-      setBanner(`${imageURL}?t=${Date.now()}`);
+      if (bannerRes?.data?.banner_url) {
+        setBanner(`${bannerRes.data.banner_url}?t=${Date.now()}`);
+      }
     } catch (err) {
       console.error("Error fetching data:", err);
     }
@@ -37,31 +36,20 @@ const NewsPage = () => {
 
   const closeModal = () => setModal({ open: false, content: null });
 
-  const blobToBase64 = (blob) => {
-    try {
-      return `data:image/jpeg;base64,${btoa(
-        new Uint8Array(blob.data).reduce(
-          (acc, byte) => acc + String.fromCharCode(byte),
-          ""
-        )
-      )}`;
-    } catch (err) {
-      console.error("Error decoding image blob:", err);
-      return "/default-image.jpg";
-    }
-  };
-
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 pt-24">
+<div className="flex flex-col min-h-screen bg-gray-50">
       <main className="flex-grow">
         {/* Top News Banner */}
-        {banner && (
-          <img
-            src={banner}
-            alt="News Banner"
-            className="w-full h-64 object-cover shadow mb-10"
-          />
-        )}
+   {banner && (
+  <div className="w-full overflow-hidden max-h-[400px]">
+    <img
+      src={banner}
+      alt="News Banner"
+      className="w-full h-[400px] object-cover object-center shadow mb-10"
+    />
+  </div>
+)}
+
 
         {/* News Cards */}
         <div className="max-w-6xl mx-auto px-4 pb-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -76,7 +64,7 @@ const NewsPage = () => {
                   news.images.slice(0, 4).map((img, i) => (
                     <img
                       key={i}
-                      src={blobToBase64(img.image_blob)}
+                      src={img.image_url || "/default-image.jpg"}
                       alt={`thumbnail-${i}`}
                       className="w-full h-full object-cover"
                     />
@@ -127,7 +115,7 @@ const NewsPage = () => {
             <img
               src={
                 modal.content?.images?.length > 0
-                  ? blobToBase64(modal.content.images[0].image_blob)
+                  ? modal.content.images[0].image_url || "/default-image.jpg"
                   : "/default-image.jpg"
               }
               alt="modal-news-banner"
@@ -158,7 +146,7 @@ const NewsPage = () => {
                   {modal.content.images.slice(1).map((img, idx) => (
                     <img
                       key={idx}
-                      src={blobToBase64(img.image_blob)}
+                      src={img.image_url || "/default-image.jpg"}
                       alt={`news-img-${idx + 1}`}
                       className="w-full h-48 object-cover rounded border"
                     />

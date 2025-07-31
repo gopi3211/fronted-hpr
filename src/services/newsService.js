@@ -7,5 +7,5 @@ export const createNews = (data) => axiosInstance.post("/news", data);
 export const updateNews = (id, data) => axiosInstance.put(`/news/${id}`, data);
 export const deleteNews = (id) => axiosInstance.delete(`/news/${id}`);
 
-export const uploadBanner = (formData) => axiosInstance.post("/news/banner", formData);
-export const getBanner = () => axiosInstance.get("/news/banner", { responseType: 'blob' });
+export const uploadBanner = (data) => axiosInstance.post("/news/banner", data);
+export const getBanner = () => axiosInstance.get("/news/banner"); // ✅ FIXED

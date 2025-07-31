@@ -5,12 +5,11 @@ const HeroCarouselCrud = () => {
   const [slides, setSlides] = useState([]);
   const [heading, setHeading] = useState("");
   const [subheading, setSubheading] = useState("");
-  const [image, setImage] = useState(null);
+  const [imageUrl, setImageUrl] = useState("");
   const [editingId, setEditingId] = useState(null);
-  const dataRef = useRef(null); // ✅ 1. useRef to cache
+  const dataRef = useRef(null);
 
   const API = import.meta.env.VITE_API_BASE_URL + "/hero-carousel";
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api/v1", "");
 
   const fetchSlides = async () => {
     if (dataRef.current) {
@@ -32,28 +31,29 @@ const HeroCarouselCrud = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!heading || !subheading || (!image && !editingId)) {
+    if (!heading || !subheading || !imageUrl) {
       alert("All fields are required.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("heading", heading);
-    formData.append("subheading", subheading);
-    if (image) formData.append("image", image);
+    const payload = {
+      heading,
+      subheading,
+      image: imageUrl,
+    };
 
     try {
       if (editingId) {
-        await axios.put(`${API}/${editingId}`, formData);
+        await axios.put(`${API}/${editingId}`, payload);
         setEditingId(null);
       } else {
-        await axios.post(API, formData);
+        await axios.post(API, payload);
       }
 
       setHeading("");
       setSubheading("");
-      setImage(null);
-      dataRef.current = null; // Invalidate cache
+      setImageUrl("");
+      dataRef.current = null;
       fetchSlides();
     } catch (err) {
       console.error("Error submitting form", err);
@@ -63,7 +63,7 @@ const HeroCarouselCrud = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API}/${id}`);
-      dataRef.current = null; // Invalidate cache
+      dataRef.current = null;
       fetchSlides();
     } catch (err) {
       console.error("Failed to delete", err);
@@ -74,6 +74,7 @@ const HeroCarouselCrud = () => {
     setEditingId(slide.id);
     setHeading(slide.heading);
     setSubheading(slide.subheading);
+    setImageUrl(slide.image);
   };
 
   return (
@@ -87,7 +88,6 @@ const HeroCarouselCrud = () => {
           onSubmit={handleSubmit}
           className="bg-white rounded-xl shadow-lg p-6 space-y-4"
         >
-          {/* Form Inputs */}
           <input
             type="text"
             placeholder="Enter heading"
@@ -105,16 +105,18 @@ const HeroCarouselCrud = () => {
             className="w-full p-3 border border-gray-300 rounded-md"
           />
           <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImage(e.target.files[0])}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            type="text"
+            placeholder="Paste image URL"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            required
+            className="w-full p-3 border border-gray-300 rounded-md"
           />
-          {image && (
+          {imageUrl && (
             <img
-              src={URL.createObjectURL(image)}
+              src={imageUrl}
               alt="Preview"
-              className="w-full h-40 object-cover mt-2 rounded-md"
+              className="w-full h-40 object-cover mt-2 rounded-md border"
             />
           )}
 
@@ -138,9 +140,9 @@ const HeroCarouselCrud = () => {
               className="bg-white rounded-lg shadow-md overflow-hidden"
             >
               <img
-                src={`${BASE_URL}/uploads/images/${slide.image}`}
+                src={slide.image}
                 alt={slide.heading}
-                loading="lazy" // ✅ 5. Lazy load
+                loading="lazy"
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">

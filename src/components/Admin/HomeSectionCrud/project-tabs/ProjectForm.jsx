@@ -5,37 +5,47 @@ const ProjectForm = ({ editingProject, onSubmit, onCancel }) => {
     name: "",
     category: "",
     short_desc: "",
-    logo: null,
-    banner: null,
+    logo_url: "",
+    banner_url: "",
   });
 
   useEffect(() => {
     if (editingProject) {
       setForm({
-        name: editingProject.name,
-        category: editingProject.category,
-        short_desc: editingProject.short_desc,
-        logo: null,
-        banner: null,
+        name: editingProject.name || "",
+        category: editingProject.category || "",
+        short_desc: editingProject.short_desc || "",
+        logo_url: editingProject.logo_url || "",
+        banner_url: editingProject.banner_url || "",
       });
     } else {
-      setForm({ name: "", category: "", short_desc: "", logo: null, banner: null });
+      setForm({
+        name: "",
+        category: "",
+        short_desc: "",
+        logo_url: "",
+        banner_url: "",
+      });
     }
   }, [editingProject]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", form.name);
-    formData.append("category", form.category);
-    formData.append("short_desc", form.short_desc);
-    if (form.logo) formData.append("logo", form.logo);
-    if (form.banner) formData.append("banner", form.banner);
-    onSubmit(formData);
+    const payload = {
+      name: form.name,
+      category: form.category,
+      short_desc: form.short_desc,
+      logo_url: form.logo_url,
+      banner_url: form.banner_url,
+    };
+    onSubmit(payload);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 shadow rounded space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white p-6 shadow rounded space-y-4"
+    >
       <input
         type="text"
         placeholder="Project Name"
@@ -44,6 +54,7 @@ const ProjectForm = ({ editingProject, onSubmit, onCancel }) => {
         className="w-full p-3 border rounded"
         required
       />
+
       <select
         value={form.category}
         onChange={(e) => setForm({ ...form, category: e.target.value })}
@@ -55,6 +66,7 @@ const ProjectForm = ({ editingProject, onSubmit, onCancel }) => {
         <option value="Completed">Completed</option>
         <option value="Future">Future</option>
       </select>
+
       <input
         type="text"
         placeholder="Short Description"
@@ -63,23 +75,52 @@ const ProjectForm = ({ editingProject, onSubmit, onCancel }) => {
         className="w-full p-3 border rounded"
         required
       />
-      <input
-        type="file"
-        onChange={(e) => setForm({ ...form, logo: e.target.files[0] })}
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="file"
-        onChange={(e) => setForm({ ...form, banner: e.target.files[0] })}
-        className="w-full p-2 border rounded"
-      />
 
-      <div className="flex gap-3">
-        <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">
+      <input
+        type="text"
+        placeholder="Logo Image URL"
+        value={form.logo_url}
+        onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
+        className="w-full p-3 border rounded"
+      />
+      {form.logo_url && (
+        <img
+          src={form.logo_url}
+          alt="Logo Preview"
+          className="h-16 w-16 object-cover rounded border"
+          onError={(e) => (e.target.src = "/default-avatar.png")}
+        />
+      )}
+
+      <input
+        type="text"
+        placeholder="Banner Image URL"
+        value={form.banner_url}
+        onChange={(e) => setForm({ ...form, banner_url: e.target.value })}
+        className="w-full p-3 border rounded"
+      />
+      {form.banner_url && (
+        <img
+          src={form.banner_url}
+          alt="Banner Preview"
+          className="h-16 w-32 object-cover rounded border"
+          onError={(e) => (e.target.src = "/default-avatar.png")}
+        />
+      )}
+
+      <div className="flex gap-3 pt-2">
+        <button
+          type="submit"
+          className="bg-green-600 text-white px-4 py-2 rounded"
+        >
           {editingProject ? "Update Project" : "Add Project"}
         </button>
         {editingProject && (
-          <button type="button" onClick={onCancel} className="bg-gray-400 text-white px-4 py-2 rounded">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-400 text-white px-4 py-2 rounded"
+          >
             Cancel
           </button>
         )}

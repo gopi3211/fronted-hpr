@@ -5,9 +5,11 @@ import {
   deleteGalleryImage,
 } from '../../../../services/hprProjectsService';
 
+const IMAGE_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || '';
+
 const ProjectGalleryCrud = React.memo(({ projectId }) => {
   const [images, setImages] = useState([]);
-  const [file, setFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [workDate, setWorkDate] = useState('');
   const [description, setDescription] = useState('');
   const hasFetched = useRef(false);
@@ -22,11 +24,9 @@ const ProjectGalleryCrud = React.memo(({ projectId }) => {
   const fetchGallery = async () => {
     try {
       const res = await getGalleryByProjectId(projectId);
-      const formatted = res.data?.map(item => ({
+      const formatted = res.data?.map((item) => ({
         ...item,
-        image_url: item.image_filename
-          ? `${import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')}/uploads/project-images/${item.image_filename}`
-          : null,
+        image_url: item.image_url?.replace('http://localhost:5000', IMAGE_BASE_URL) || null,
       })) || [];
       setImages(formatted);
     } catch (err) {
@@ -37,25 +37,24 @@ const ProjectGalleryCrud = React.memo(({ projectId }) => {
   const resetForm = () => {
     setWorkDate('');
     setDescription('');
-    setFile(null);
-    const fileInput = document.getElementById('fileInput');
-    if (fileInput) fileInput.value = '';
+    setImageUrl('');
   };
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!workDate || !description) return alert("All fields required");
+    if (!workDate || !description || !imageUrl) return alert('All fields are required');
 
-    const formData = new FormData();
-    formData.append('project_id', projectId);
-    formData.append('work_date', workDate);
-    formData.append('description', description);
-    if (file) formData.append('image', file);
+    const payload = {
+      project_id: projectId,
+      work_date: workDate,
+      description: description,
+      image_url: imageUrl,
+    };
 
     try {
-      await addGalleryImage(formData);
+      await addGalleryImage(payload);
       resetForm();
-      setTimeout(fetchGallery, 300); // optional delay to ensure updated data
+      setTimeout(fetchGallery, 300);
     } catch (err) {
       console.error('Upload error:', err);
     }
@@ -73,9 +72,7 @@ const ProjectGalleryCrud = React.memo(({ projectId }) => {
   return (
     <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-3xl font-bold text-gray-900 mb-6">
-          🖼️ Project Gallery
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">🖼️ Project Gallery</h2>
 
         <form
           onSubmit={handleUpload}
@@ -105,14 +102,22 @@ const ProjectGalleryCrud = React.memo(({ projectId }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
             <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFile(e.target.files[0])}
-              id="fileInput"
-              className="w-full p-2 border border-gray-300 rounded-md bg-white"
+              type="text"
+              placeholder="Paste image URL"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md bg-white"
+              required
             />
+            {imageUrl && (
+              <img
+                src={imageUrl}
+                alt="Preview"
+                className="mt-2 w-full h-24 object-cover rounded-md border"
+              />
+            )}
           </div>
 
           <div className="flex gap-2">
@@ -136,6 +141,9 @@ const ProjectGalleryCrud = React.memo(({ projectId }) => {
                   src={img.image_url}
                   alt="Gallery"
                   loading="lazy"
+                  onError={(e) => {
+                    e.target.src = '/default-avatar.png';
+                  }}
                   className="w-full h-32 object-cover rounded-md mb-2"
                 />
               ) : (
@@ -147,7 +155,7 @@ const ProjectGalleryCrud = React.memo(({ projectId }) => {
               <p className="text-xs text-gray-500">
                 {new Date(img.work_date).toLocaleDateString()}
               </p>
-              <div className="absolute top-2 right-2 flex flex-col gap-1">
+              <div className="absolute top-2 right-2">
                 <button
                   onClick={() => handleDelete(img.id)}
                   className="bg-red-600 text-white px-2 py-1 text-xs rounded-md"

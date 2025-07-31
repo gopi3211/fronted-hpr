@@ -4,9 +4,6 @@ import { Link } from "react-router-dom";
 import Footer from "../Home/Footer";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const STATIC_BASE_URL = API_BASE_URL.replace("/api/v1", ""); // ✅ for static image access
-
 const HPRProjectsPublicPage = () => {
   const [ongoingProjects, setOngoingProjects] = useState([]);
   const [completedProjects, setCompletedProjects] = useState([]);
@@ -16,8 +13,8 @@ const HPRProjectsPublicPage = () => {
   const hasFetched = useRef(false);
 
   useEffect(() => {
-    fetchProjects(); // initial load
-    const interval = setInterval(fetchProjects, 30000); // ✅ auto-refresh every 30s
+    fetchProjects();
+    const interval = setInterval(fetchProjects, 30000); // Auto-refresh
     return () => clearInterval(interval);
   }, []);
 
@@ -44,10 +41,10 @@ const HPRProjectsPublicPage = () => {
   const renderProjectCard = (project) => {
     const isValid = (val) => typeof val === "string" && val.trim() !== "";
 
-    const imageSrc = isValid(project.logo_filename)
-      ? `${STATIC_BASE_URL}/uploads/project-images/${project.logo_filename}`
-      : isValid(project.banner_filename)
-      ? `${STATIC_BASE_URL}/uploads/project-images/${project.banner_filename}`
+    const imageSrc = isValid(project.logo_url)
+      ? project.logo_url
+      : isValid(project.banner_url)
+      ? project.banner_url
       : "/default-image.jpg";
 
     return (
@@ -60,6 +57,7 @@ const HPRProjectsPublicPage = () => {
           alt={project.name}
           loading="lazy"
           className="w-full h-40 object-cover mb-4 rounded"
+          onError={(e) => (e.target.src = "/default-image.jpg")}
         />
         <h2 className="text-xl font-semibold mb-2">{project.name}</h2>
         <p className="text-gray-600 mb-3 line-clamp-2">{project.short_desc}</p>
@@ -108,7 +106,6 @@ const HPRProjectsPublicPage = () => {
             </div>
           ) : (
             <>
-              {/* 🔵 Ongoing Projects */}
               <section className="mb-10">
                 <h2 className="text-2xl font-semibold mb-4">Ongoing Projects</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -118,7 +115,6 @@ const HPRProjectsPublicPage = () => {
                 </div>
               </section>
 
-              {/* ✅ Completed Projects */}
               <section className="mb-10">
                 <h2 className="text-2xl font-semibold mb-4">Completed Projects</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -128,7 +124,6 @@ const HPRProjectsPublicPage = () => {
                 </div>
               </section>
 
-              {/* 🔮 Future Projects */}
               <section>
                 <h2 className="text-2xl font-semibold mb-4">Future Projects</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -14,10 +14,11 @@ const NewsCrud = () => {
     short_description: "",
     full_description: "",
     posted_date: "",
-    images: [],
+    image_urls: [""], // initialize with one empty field
   });
-  const [bannerPreview, setBannerPreview] = useState(null);
-  const [bannerFile, setBannerFile] = useState(null);
+
+  const [bannerUrl, setBannerUrl] = useState("");
+  const [bannerPreview, setBannerPreview] = useState("");
 
   const fetchNews = async () => {
     try {
@@ -28,42 +29,32 @@ const NewsCrud = () => {
     }
   };
 
-  const handleBannerChange = (e) => {
-    const file = e.target.files[0];
-    setBannerFile(file);
-    if (file) setBannerPreview(URL.createObjectURL(file));
-  };
-
   const handleUploadBanner = async () => {
-    if (!bannerFile) return;
-    const formData = new FormData();
-    formData.append("banner", bannerFile);
+    if (!bannerUrl) return alert("Please enter a banner URL.");
     try {
-      await uploadBanner(formData);
-      alert("Banner uploaded");
+      await uploadBanner({ banner_url: bannerUrl });
+      alert("Banner uploaded successfully");
+      setBannerPreview(`${bannerUrl}?t=${Date.now()}`);
     } catch (err) {
-      console.error("Upload banner error:", err);
+      console.error("Banner upload error:", err);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    for (const key in form) {
-      if (key !== "images") formData.append(key, form[key]);
-    }
-    for (const img of form.images) {
-      formData.append("images", img);
-    }
 
     try {
-      await createNews(formData);
+      await createNews({
+        ...form,
+        image_urls: form.image_urls.filter((url) => url.trim() !== ""),
+      });
+      alert("News added successfully");
       setForm({
         title: "",
         short_description: "",
         full_description: "",
         posted_date: "",
-        images: [],
+        image_urls: [""],
       });
       fetchNews();
     } catch (err) {
@@ -84,11 +75,11 @@ const NewsCrud = () => {
     fetchNews();
     (async () => {
       try {
-        const banner = await getBanner();
-        const mime = banner.headers["content-type"];
-        const blob = new Blob([banner.data], { type: mime });
-        const url = URL.createObjectURL(blob);
-        setBannerPreview(`${url}?t=${Date.now()}`);
+        const res = await getBanner();
+        if (res?.data?.banner_url) {
+          setBannerUrl(res.data.banner_url);
+          setBannerPreview(res.data.banner_url);
+        }
       } catch (err) {
         console.error("Banner load error:", err);
       }
@@ -100,7 +91,7 @@ const NewsCrud = () => {
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-md">
         <h2 className="text-3xl font-bold text-gray-900 mb-6">News & Updates CRUD</h2>
 
-        {/* Banner Upload */}
+        {/* Banner Upload Section */}
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-2">News Banner</h3>
           {bannerPreview && (
@@ -112,8 +103,10 @@ const NewsCrud = () => {
           )}
           <div className="mt-3 flex gap-3 items-center">
             <input
-              type="file"
-              onChange={handleBannerChange}
+              type="text"
+              value={bannerUrl}
+              onChange={(e) => setBannerUrl(e.target.value)}
+              placeholder="Paste banner image URL"
               className="w-full border rounded px-3 py-2 text-sm"
             />
             <button
@@ -132,7 +125,7 @@ const NewsCrud = () => {
             placeholder="Title"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full border px-4 py-2 rounded bg-white text-gray-900 placeholder-gray-400"
+            className="w-full border px-4 py-2 rounded bg-white"
             required
           />
           <input
@@ -142,7 +135,7 @@ const NewsCrud = () => {
             onChange={(e) =>
               setForm({ ...form, short_description: e.target.value })
             }
-            className="w-full border px-4 py-2 rounded bg-white text-gray-900 placeholder-gray-400"
+            className="w-full border px-4 py-2 rounded bg-white"
             required
           />
           <textarea
@@ -151,7 +144,7 @@ const NewsCrud = () => {
             onChange={(e) =>
               setForm({ ...form, full_description: e.target.value })
             }
-            className="w-full border px-4 py-3 rounded bg-white text-gray-900 placeholder-gray-400 resize-none"
+            className="w-full border px-4 py-3 rounded bg-white resize-none"
             rows={5}
             required
           />
@@ -161,17 +154,51 @@ const NewsCrud = () => {
             onChange={(e) =>
               setForm({ ...form, posted_date: e.target.value })
             }
-            className="w-full border px-4 py-2 rounded bg-white text-gray-900"
+            className="w-full border px-4 py-2 rounded bg-white"
             required
           />
-          <input
-            type="file"
-            multiple
-            onChange={(e) =>
-              setForm({ ...form, images: Array.from(e.target.files) })
-            }
-            className="w-full border px-4 py-2 rounded text-sm"
-          />
+
+          {/* Dynamic Image URLs */}
+          <div className="space-y-2">
+            <label className="block font-medium text-sm text-gray-700">
+              News Image URLs
+            </label>
+            {form.image_urls.map((url, idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => {
+                    const newUrls = [...form.image_urls];
+                    newUrls[idx] = e.target.value;
+                    setForm({ ...form, image_urls: newUrls });
+                  }}
+                  placeholder={`Image URL ${idx + 1}`}
+                  className="flex-1 border px-3 py-2 rounded text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newUrls = form.image_urls.filter((_, i) => i !== idx);
+                    setForm({ ...form, image_urls: newUrls });
+                  }}
+                  className="text-red-600 text-sm"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                setForm({ ...form, image_urls: [...form.image_urls, ""] })
+              }
+              className="text-sm text-blue-600 mt-1"
+            >
+              + Add Image URL
+            </button>
+          </div>
+
           <button
             type="submit"
             className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700"
@@ -181,7 +208,7 @@ const NewsCrud = () => {
         </form>
       </div>
 
-      {/* All News Display */}
+      {/* News List */}
       <div className="max-w-4xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow-md">
         <h3 className="text-2xl font-bold text-gray-900 mb-4">All News Entries</h3>
         {newsList.length === 0 ? (

@@ -7,17 +7,14 @@ const CompanyValuesCrud = React.memo(() => {
   const [values, setValues] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
+  const [image, setImage] = useState('');
   const [editingId, setEditingId] = useState(null);
   const hasFetched = useRef(false);
 
   const fetchValues = async () => {
-    console.log('[CompanyValues] Fetching...');
     try {
       const res = await axios.get(API);
       setValues(res.data.data || []);
-      console.log('[CompanyValues] Data:', res.data.data);
     } catch (err) {
       console.error('[CompanyValues] Fetch Error:', err);
     }
@@ -33,30 +30,25 @@ const CompanyValuesCrud = React.memo(() => {
   const resetForm = () => {
     setTitle('');
     setDescription('');
-    setImage(null);
-    setPreviewImage(null);
+    setImage('');
     setEditingId(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!title || !description || (!image && !editingId)) {
+    if (!title || !description || !image) {
       alert('All fields are required.');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
-    if (image instanceof File) formData.append('image', image);
+    const payload = { title, description, image };
 
     try {
       if (editingId) {
-        await axios.put(`${API}/${editingId}`, formData);
+        await axios.put(`${API}/${editingId}`, payload);
         alert('Value updated');
       } else {
-        await axios.post(API, formData);
+        await axios.post(API, payload);
         alert('Value added');
       }
       resetForm();
@@ -70,8 +62,8 @@ const CompanyValuesCrud = React.memo(() => {
   const handleEdit = (value) => {
     setTitle(value.title);
     setDescription(value.description);
+    setImage(value.image); // ✅ Use actual image URL stored
     setEditingId(value.id);
-setPreviewImage(value.image_url);  // ✅
   };
 
   const handleDelete = async (id) => {
@@ -105,6 +97,7 @@ setPreviewImage(value.image_url);  // ✅
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
@@ -114,27 +107,31 @@ setPreviewImage(value.image_url);  // ✅
               required
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium mb-1">Image</label>
+            <label className="block text-sm font-medium mb-1">Image URL</label>
             <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                setImage(file);
-                setPreviewImage(file ? URL.createObjectURL(file) : null);
-              }}
+              type="text"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md"
+              placeholder="https://cdn.example.com/image.png"
+              required
             />
-            {previewImage && (
+            {image && (
               <img
-                src={previewImage}
+                src={image}
                 alt="Preview"
                 className="w-full h-40 object-cover mt-2 rounded"
                 loading="lazy"
+                onError={(e) => {
+                  e.target.src = '';
+                  console.error('[Image Preview] Failed to load image:', image);
+                }}
               />
             )}
           </div>
+
           <button
             type="submit"
             className={`w-full py-2 rounded text-white font-semibold ${
@@ -153,12 +150,22 @@ setPreviewImage(value.image_url);  // ✅
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {values.map((val) => (
               <div key={val.id} className="bg-white rounded shadow p-4 hover:shadow-md transition">
-            <img
-  src={val.image_url}  // ✅ correct - full backend URL
-  alt={val.title}
-  className="w-full h-40 object-cover rounded"
-  loading="lazy"
-/>
+                {val.image ? (
+                  <img
+                    src={val.image}
+                    alt={val.title}
+                    className="w-full h-40 object-cover rounded"
+                    loading="lazy"
+                    onError={(e) => {
+                      console.error('[Card Image] Load Error:', val.image);
+                      e.target.src = '';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-40 bg-gray-200 flex items-center justify-center text-sm text-gray-500">
+                    No Image
+                  </div>
+                )}
 
                 <h4 className="text-lg font-semibold mt-2">{val.title}</h4>
                 <p className="text-sm text-gray-600 mt-1 line-clamp-2">{val.description}</p>

@@ -9,17 +9,13 @@ const ProjectsSectionCrud = React.memo(() => {
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
+  const [image, setImage] = useState('');
   const [editingId, setEditingId] = useState(null);
   const navigate = useNavigate();
-
   const cached = useRef(false);
 
   useEffect(() => {
-    console.log('[useEffect] Component mounted');
     if (!cached.current) {
-      console.log('[useEffect] Fetching projects...');
       fetchProjects();
       cached.current = true;
     }
@@ -28,39 +24,29 @@ const ProjectsSectionCrud = React.memo(() => {
   const fetchProjects = async () => {
     try {
       const res = await axios.get(`${baseURL}/home/projects`);
-      console.log('[fetchProjects] API Response:', res.data);
       setProjects(res.data.data);
     } catch (err) {
       console.error('[fetchProjects] Error fetching projects:', err);
     } finally {
       setLoading(false);
-      console.log('[fetchProjects] Loading set to false');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('[handleSubmit] Submitting form...');
-    if (!title || !description || (!image && !editingId)) {
+    if (!title || !description || !image) {
       alert('All fields are required.');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
-    if (image) {
-      formData.append('image', image);
-    }
+    const payload = { title, description, image };
 
     try {
       if (editingId) {
-        console.log(`[handleSubmit] Updating project ID ${editingId}`);
-        await axios.put(`${baseURL}/home/projects/${editingId}`, formData);
+        await axios.put(`${baseURL}/home/projects/${editingId}`, payload);
         alert('Project updated successfully');
       } else {
-        console.log('[handleSubmit] Creating new project');
-        await axios.post(`${baseURL}/home/projects`, formData);
+        await axios.post(`${baseURL}/home/projects`, payload);
         alert('Project added successfully');
       }
       resetForm();
@@ -72,22 +58,15 @@ const ProjectsSectionCrud = React.memo(() => {
   };
 
   const handleEdit = (project) => {
-    console.log('[handleEdit] Editing project:', project);
-
     setTitle(project.title);
     setDescription(project.description);
+    setImage(project.image); // ✅ image URL now
     setEditingId(project.id);
-
-    const imagePath = `${baseURL.replace('/api/v1', '')}/uploads/project-images/${project.image}`;
-    console.log('[handleEdit] Constructed previewImage path:', imagePath);
-
-    setPreviewImage(imagePath);
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
     try {
-      console.log(`[handleDelete] Deleting project ID ${id}`);
       await axios.delete(`${baseURL}/home/projects/${id}`);
       alert('Project deleted successfully');
       fetchProjects();
@@ -98,11 +77,9 @@ const ProjectsSectionCrud = React.memo(() => {
   };
 
   const resetForm = () => {
-    console.log('[resetForm] Resetting form...');
     setTitle('');
     setDescription('');
-    setImage(null);
-    setPreviewImage(null);
+    setImage('');
     setEditingId(null);
   };
 
@@ -117,11 +94,8 @@ const ProjectsSectionCrud = React.memo(() => {
             <input
               type="text"
               value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                console.log('[Form] Title changed:', e.target.value);
-              }}
-              className="w-full p-3 border border-gray-300 rounded-md bg-white"
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md"
               placeholder="Enter project title"
               required
             />
@@ -131,39 +105,29 @@ const ProjectsSectionCrud = React.memo(() => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
               value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                console.log('[Form] Description changed:', e.target.value);
-              }}
-              className="w-full p-3 border border-gray-300 rounded-md bg-white h-24 resize-none"
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md h-24 resize-none"
               placeholder="Enter project description"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
             <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                console.log('[Form] Selected image file:', file);
-                setImage(file);
-                if (file) {
-                  const blobUrl = URL.createObjectURL(file);
-                  console.log('[Form] Setting preview image from blob:', blobUrl);
-                  setPreviewImage(blobUrl);
-                }
-              }}
-              className="w-full p-2 border border-gray-300 rounded-md bg-white"
+              type="text"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md"
+              placeholder="https://example.com/image.jpg"
+              required
             />
-            {previewImage && (
+            {image && (
               <img
-                src={previewImage}
+                src={image}
                 alt="Preview"
-                className="mt-3 w-full h-48 object-cover rounded-md"
-                onError={() => console.error('[Image Preview] Failed to load image:', previewImage)}
+                className="mt-3 w-full h-48 object-cover rounded-md border"
+                onError={() => console.error('[Image Preview] Failed to load image:', image)}
               />
             )}
           </div>
@@ -189,7 +153,7 @@ const ProjectsSectionCrud = React.memo(() => {
               <div key={project.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300">
                 {project.image ? (
                   <img
-                    src={`${baseURL.replace('/api/v1', '')}/uploads/project-images/${project.image}`}
+                    src={project.image}
                     alt={project.title}
                     className="w-full h-48 object-cover"
                     loading="lazy"

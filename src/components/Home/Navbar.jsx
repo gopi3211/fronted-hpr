@@ -41,9 +41,9 @@ const Navbar = () => {
 </Link>
 
 
-        <li>
-  <Link to="/contact" className="hover:text-lime-600">Contact Us</Link>
-</li>
+                 <Link to="/contact" className="text-white text-lg md:text-xl font-semibold no-underline hover:no-underline">
+Contact Us
+</Link>
 
         </nav>
 

@@ -29,9 +29,7 @@ const GalleryPage = () => {
 
       const formatted = res?.data?.map((item) => ({
         ...item,
-        image_url: item.image_filename
-          ? `${BASE_URL}/uploads/project-images/${item.image_filename}`
-          : null,
+        image_url: item.image_url?.replace("http://localhost:5000", BASE_URL) || null,
       })) || [];
 
       setImages(formatted);

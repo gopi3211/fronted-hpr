@@ -7,7 +7,7 @@ import {
 
 const ProjectPlanCrud = React.memo(({ projectId }) => {
   const [plan, setPlan] = useState(null);
-  const [form, setForm] = useState({ description: '', file: null });
+  const [form, setForm] = useState({ description: '', file_url: '' });
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -23,20 +23,10 @@ const ProjectPlanCrud = React.memo(({ projectId }) => {
       const data = res.data;
 
       if (data) {
-        const fileName = data.plan_filename; // ✅ fixed key
-        const fileUrl = fileName
-          ? `${import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')}/uploads/project-images/${fileName}`
-
-          : null;
-
         setPlan({
           id: data.id,
           description: data.description,
-          file_name: fileName,
-          file_url: fileUrl,
-        });
-
-        console.log("✅ Preview Plan URL:", fileUrl);
+file_url: data.plan_url,        });
       } else {
         setPlan(null);
       }
@@ -45,28 +35,31 @@ const ProjectPlanCrud = React.memo(({ projectId }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!form.description || !form.file) {
-      alert('Both description and file are required.');
-      return;
-    }
+  const { description, file_url } = form;
+  if (!description || !file_url) {
+    alert('Both description and file URL are required.');
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append('description', form.description);
-    formData.append('plan', form.file);
-    formData.append('project_id', projectId);
-
-    try {
-      await addPlan(formData);
-      resetForm();
-      hasFetched.current = false; // ✅ allow re-fetch
-      fetchPlan();
-    } catch (err) {
-      console.error('Add plan error:', err);
-    }
+  const payload = {
+    project_id: projectId,
+    description,
+    plan_url: file_url, // ✅ backend expects 'plan_url'
   };
+
+  try {
+    await addPlan(payload);
+    resetForm();
+    hasFetched.current = false;
+    fetchPlan();
+  } catch (err) {
+    console.error('Add plan error:', err);
+  }
+};
+
 
   const handleDelete = async () => {
     if (!plan?.id) return;
@@ -74,15 +67,17 @@ const ProjectPlanCrud = React.memo(({ projectId }) => {
       await deletePlan(plan.id);
       setPlan(null);
       resetForm();
-      hasFetched.current = false; // ✅ allow re-fetch
+      hasFetched.current = false;
     } catch (err) {
       console.error('Delete plan error:', err);
     }
   };
 
   const resetForm = () => {
-    setForm({ description: '', file: null });
+    setForm({ description: '', file_url: '' });
   };
+
+  const isPDF = (url = '') => url?.toLowerCase().endsWith('.pdf');
 
   return (
     <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
@@ -103,23 +98,44 @@ const ProjectPlanCrud = React.memo(({ projectId }) => {
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload Plan (Image or PDF)
+              Plan File URL (Image or PDF)
             </label>
             <input
-              type="file"
-              accept="image/*,.pdf"
-              onChange={(e) => setForm({ ...form, file: e.target.files[0] })}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              type="text"
+              placeholder="Paste image or PDF URL"
+              value={form.file_url}
+              onChange={(e) => setForm({ ...form, file_url: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-md"
               required
             />
-            {form.file && (
-              <p className="text-sm text-gray-600 mt-2">
-                Selected: {form.file.name}
-              </p>
+            {form.file_url && (
+              <div className="mt-3">
+                {isPDF(form.file_url) ? (
+                  <a
+                    href={form.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline"
+                  >
+                    📄 Preview PDF
+                  </a>
+                ) : (
+                  <img
+                    src={form.file_url}
+                    alt="Plan Preview"
+                    className="w-full h-48 object-contain rounded-md"
+                    onError={(e) => {
+                      e.target.src = '/default-avatar.png';
+                    }}
+                  />
+                )}
+              </div>
             )}
           </div>
+
           <button
             className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
             type="submit"
@@ -134,7 +150,7 @@ const ProjectPlanCrud = React.memo(({ projectId }) => {
               {plan.description}
             </h3>
 
-            {plan.file_name?.endsWith('.pdf') ? (
+            {isPDF(plan.file_url) ? (
               <a
                 href={plan.file_url}
                 target="_blank"
@@ -143,15 +159,13 @@ const ProjectPlanCrud = React.memo(({ projectId }) => {
               >
                 📄 View PDF Plan
               </a>
-            ) : plan.file_url ? (
+            ) : (
               <img
                 src={plan.file_url}
                 alt="Plan"
                 loading="lazy"
                 className="w-full h-48 object-contain rounded-md mb-2"
               />
-            ) : (
-              <p className="text-gray-500 text-sm">No plan available</p>
             )}
 
             <div className="absolute top-3 right-3">

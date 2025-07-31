@@ -9,10 +9,9 @@ import "swiper/css/navigation";
 const HeroCarousel = React.memo(() => {
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
-  const dataRef = useRef(null); // ✅ 1. useRef to cache
+  const dataRef = useRef(null);
 
   const API = import.meta.env.VITE_API_BASE_URL + "/hero-carousel";
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api/v1", "");
 
   useEffect(() => {
     const fetchSlides = async () => {
@@ -57,7 +56,7 @@ const HeroCarousel = React.memo(() => {
             <div
               className="w-full h-full bg-cover bg-center relative"
               style={{
-                backgroundImage: `url(${BASE_URL}/uploads/images/${slide.image})`, // ✅ 2. Static URL
+                backgroundImage: `url(${slide.image})`, // ✅ Final change here
               }}
             >
               <div className="absolute inset-0 bg-black/50 z-10" />

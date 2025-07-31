@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 
-const IMAGE_BASE_URL = import.meta.env.VITE_API_BASE_URL.replace("/api/v1", "");
+const IMAGE_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace("/api/v1", "") || "";
 
 const ProjectList = ({
   projects,
@@ -69,17 +69,17 @@ const ProjectList = ({
             onClick={() => onSelect(proj)}
           >
             <h3 className="text-lg font-semibold">{proj.name}</h3>
-            <p className="text-sm">{proj.short_desc}</p>
+            <p className="text-sm text-gray-700">{proj.short_desc}</p>
             <p className="text-xs text-gray-500 italic">{proj.category}</p>
 
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-2 items-center">
               {proj.logo_url && (
                 <img
                   src={proj.logo_url.replace("http://localhost:5000", IMAGE_BASE_URL)}
                   alt="logo"
                   className="w-10 h-10 object-cover border rounded"
                   onError={(e) => {
-                    e.target.src = "/default-avatar.png"; // fallback
+                    e.target.src = "/default-avatar.png";
                   }}
                 />
               )}
@@ -89,24 +89,30 @@ const ProjectList = ({
                   alt="banner"
                   className="w-20 h-10 object-cover border rounded"
                   onError={(e) => {
-                    e.target.src = "/default-avatar.png"; // fallback
+                    e.target.src = "/default-avatar.png";
                   }}
                 />
               )}
             </div>
 
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-4 mt-3">
               <button
-                onClick={() => onEdit(proj)}
-                className="text-blue-500 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(proj);
+                }}
+                className="text-blue-500 text-xs hover:underline"
               >
-                Edit
+                ✏️ Edit
               </button>
               <button
-                onClick={() => onDelete(proj.id)}
-                className="text-red-500 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(proj.id);
+                }}
+                className="text-red-500 text-xs hover:underline"
               >
-                Delete
+                🗑️ Delete
               </button>
             </div>
           </div>
