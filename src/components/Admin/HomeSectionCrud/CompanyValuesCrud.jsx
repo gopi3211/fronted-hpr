@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import { motion } from 'framer-motion';
+import 'react-toastify/dist/ReactToastify.css';
 
 const API = import.meta.env.VITE_API_BASE_URL + '/home/company-values';
 
@@ -10,12 +13,14 @@ const CompanyValuesCrud = React.memo(() => {
   const [image, setImage] = useState('');
   const [editingId, setEditingId] = useState(null);
   const hasFetched = useRef(false);
+  const formRef = useRef(null);
 
   const fetchValues = async () => {
     try {
       const res = await axios.get(API);
       setValues(res.data.data || []);
     } catch (err) {
+      toast.error('Failed to fetch company values');
       console.error('[CompanyValues] Fetch Error:', err);
     }
   };
@@ -37,7 +42,7 @@ const CompanyValuesCrud = React.memo(() => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !description || !image) {
-      alert('All fields are required.');
+      toast.warning('All fields are required.');
       return;
     }
 
@@ -46,54 +51,63 @@ const CompanyValuesCrud = React.memo(() => {
     try {
       if (editingId) {
         await axios.put(`${API}/${editingId}`, payload);
-        alert('Value updated');
+        toast.success('Company value updated');
       } else {
         await axios.post(API, payload);
-        alert('Value added');
+        toast.success('Company value added');
       }
       resetForm();
       fetchValues();
     } catch (err) {
+      toast.error('Operation failed');
       console.error('[CompanyValues] Submit Error:', err);
-      alert('Operation failed');
     }
   };
 
   const handleEdit = (value) => {
     setTitle(value.title);
     setDescription(value.description);
-    setImage(value.image); // ✅ Use actual image URL stored
+    setImage(value.image);
     setEditingId(value.id);
+    formRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this value?')) return;
     try {
       await axios.delete(`${API}/${id}`);
-      alert('Deleted');
+      toast.success('Company value deleted');
       fetchValues();
     } catch (err) {
+      toast.error('Delete failed');
       console.error('[CompanyValues] Delete Error:', err);
-      alert('Delete failed');
     }
   };
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
       <div className="max-w-5xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+        <h2 className="text-3xl font-bold text-cyan-800 mb-6 text-center">
           Company Values Management
         </h2>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white shadow rounded-xl p-6 space-y-6">
+        <motion.form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="bg-white border border-cyan-100 shadow rounded-xl p-6 space-y-6"
+        >
           <div>
             <label className="block text-sm font-medium mb-1">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-400"
               required
             />
           </div>
@@ -103,7 +117,7 @@ const CompanyValuesCrud = React.memo(() => {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md resize-none"
+              className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-cyan-400"
               required
             />
           </div>
@@ -114,7 +128,7 @@ const CompanyValuesCrud = React.memo(() => {
               type="text"
               value={image}
               onChange={(e) => setImage(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-400"
               placeholder="https://cdn.example.com/image.png"
               required
             />
@@ -122,7 +136,7 @@ const CompanyValuesCrud = React.memo(() => {
               <img
                 src={image}
                 alt="Preview"
-                className="w-full h-40 object-cover mt-2 rounded"
+                className="w-full h-40 object-cover mt-2 rounded border border-cyan-200"
                 loading="lazy"
                 onError={(e) => {
                   e.target.src = '';
@@ -134,22 +148,30 @@ const CompanyValuesCrud = React.memo(() => {
 
           <button
             type="submit"
-            className={`w-full py-2 rounded text-white font-semibold ${
-              editingId ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
+            className={`w-full py-2 rounded-lg text-white font-semibold transition-colors duration-200 ${
+              editingId
+                ? 'bg-yellow-500 hover:bg-yellow-600'
+                : 'bg-green-500 hover:bg-green-600'
             }`}
           >
             {editingId ? 'Update Value' : 'Add Value'}
           </button>
-        </form>
+        </motion.form>
 
         {/* List */}
-        <h3 className="text-xl font-semibold mt-10 mb-4">All Company Values</h3>
+        <h3 className="text-xl font-semibold mt-10 mb-4 text-gray-800">All Company Values</h3>
         {values.length === 0 ? (
           <p className="text-center text-gray-500">No values found.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {values.map((val) => (
-              <div key={val.id} className="bg-white rounded shadow p-4 hover:shadow-md transition">
+              <motion.div
+                key={val.id}
+                className="bg-white rounded-xl shadow p-4 hover:shadow-md border border-gray-100 transition"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
                 {val.image ? (
                   <img
                     src={val.image}
@@ -167,23 +189,23 @@ const CompanyValuesCrud = React.memo(() => {
                   </div>
                 )}
 
-                <h4 className="text-lg font-semibold mt-2">{val.title}</h4>
+                <h4 className="text-lg font-semibold mt-2 text-gray-900">{val.title}</h4>
                 <p className="text-sm text-gray-600 mt-1 line-clamp-2">{val.description}</p>
                 <div className="mt-3 flex justify-between gap-2">
                   <button
                     onClick={() => handleEdit(val)}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm"
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(val.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
                   >
                     Delete
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}

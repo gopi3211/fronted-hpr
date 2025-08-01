@@ -6,6 +6,8 @@ import {
   uploadBanner,
   getBanner,
 } from "../../../services/newsService";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const NewsCrud = () => {
   const [newsList, setNewsList] = useState([]);
@@ -14,11 +16,12 @@ const NewsCrud = () => {
     short_description: "",
     full_description: "",
     posted_date: "",
-    image_urls: [""], // initialize with one empty field
+    image_urls: [""],
   });
 
   const [bannerUrl, setBannerUrl] = useState("");
   const [bannerPreview, setBannerPreview] = useState("");
+  const navigate = useNavigate();
 
   const fetchNews = async () => {
     try {
@@ -26,29 +29,30 @@ const NewsCrud = () => {
       setNewsList(res.data.data);
     } catch (err) {
       console.error("Fetch news error:", err);
+      toast.error("Failed to fetch news.");
     }
   };
 
   const handleUploadBanner = async () => {
-    if (!bannerUrl) return alert("Please enter a banner URL.");
+    if (!bannerUrl) return toast.warn("Please enter a banner URL.");
     try {
       await uploadBanner({ banner_url: bannerUrl });
-      alert("Banner uploaded successfully");
+      toast.success("Banner uploaded successfully");
       setBannerPreview(`${bannerUrl}?t=${Date.now()}`);
     } catch (err) {
       console.error("Banner upload error:", err);
+      toast.error("Failed to upload banner.");
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       await createNews({
         ...form,
         image_urls: form.image_urls.filter((url) => url.trim() !== ""),
       });
-      alert("News added successfully");
+      toast.success("News added successfully");
       setForm({
         title: "",
         short_description: "",
@@ -59,15 +63,18 @@ const NewsCrud = () => {
       fetchNews();
     } catch (err) {
       console.error("Create news error:", err);
+      toast.error("Failed to add news.");
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await deleteNews(id);
+      toast.success("News deleted successfully");
       fetchNews();
     } catch (err) {
       console.error("Delete error:", err);
+      toast.error("Failed to delete news.");
     }
   };
 
@@ -82,12 +89,22 @@ const NewsCrud = () => {
         }
       } catch (err) {
         console.error("Banner load error:", err);
+        toast.error("Failed to load banner.");
       }
     })();
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-blue-600 underline text-sm mb-2"
+        >
+          ← Back
+        </button>
+      </div>
+
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-md">
         <h2 className="text-3xl font-bold text-gray-900 mb-6">News & Updates CRUD</h2>
 
@@ -111,6 +128,7 @@ const NewsCrud = () => {
             />
             <button
               onClick={handleUploadBanner}
+              type="button"
               className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700"
             >
               Upload
@@ -148,13 +166,13 @@ const NewsCrud = () => {
             rows={5}
             required
           />
+
+          {/* 🛠️ Date Picker (Native + Protected) */}
           <input
             type="date"
             value={form.posted_date}
-            onChange={(e) =>
-              setForm({ ...form, posted_date: e.target.value })
-            }
-            className="w-full border px-4 py-2 rounded bg-white"
+            onChange={(e) => setForm({ ...form, posted_date: e.target.value })}
+            className="w-full border px-4 py-2 rounded bg-white cursor-pointer"
             required
           />
 

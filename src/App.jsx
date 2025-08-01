@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import ScrollToTop from './components/Common/ScrollToTop';
+
+
 import Navbar from './components/Home/Navbar';
 import HeroCarousel from './components/Home/HeroCarousel';
 import MissionStatement from './components/Home/MissionStatement';
@@ -58,6 +64,9 @@ function App() {
       <Navbar />
 
 <div className="pt-20 sm:pt-24 bg-[#f9fafb] text-gray-900 min-h-screen font-sans">
+  <ScrollToTop />
+
+  
         <Routes>
           {/* 🌐 Public Home Page */}
           <Route
@@ -174,8 +183,33 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+
+
+
+          
         </Routes>
       </div>
+
+
+
+<ToastContainer
+  position="top-right"
+  autoClose={3000}
+  hideProgressBar={false}
+  newestOnTop={false}
+  closeOnClick
+  rtl={false}
+  pauseOnFocusLoss
+  draggable
+  pauseOnHover
+  theme="light"
+/>
+
+
+
+
+
     </>
   );
 }

@@ -25,9 +25,10 @@ const TestimonialCarousel = () => {
   }, []);
 
   return (
-    <div className="relative py-16 bg-gradient-to-r from-[#ECFBF3] via-[#DFF4FF] to-[#ECFBF3]">
-      <div className="container mx-auto px-4">
-        <h2 className="text-center mb-10 text-4xl font-bold text-[#567D46]">
+    <section className="relative py-20 bg-gradient-to-r from-[#ECFBF3] via-[#d7f4ff] to-[#ECFBF3] overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent)] animate-pulse-slow" />
+      <div className="container mx-auto px-4 relative z-10">
+        <h2 className="text-center mb-12 text-4xl md:text-5xl font-extrabold text-[#2d6a4f] drop-shadow-sm animate-fade-in-up">
           What Our Clients Say
         </h2>
 
@@ -36,29 +37,35 @@ const TestimonialCarousel = () => {
         ) : (
           <Swiper
             modules={[Autoplay, Pagination]}
-            autoplay={{ delay: 2000, disableOnInteraction: false }}
+            autoplay={{ delay: 3500, disableOnInteraction: false }}
             pagination={{ clickable: true }}
-            loop={true}
+            loop={testimonials.length > 1}
             className="max-w-3xl mx-auto"
           >
             {testimonials.map((t) => (
               <SwiperSlide key={t.id}>
-                <div className="bg-white rounded-2xl shadow-2xl hover:shadow-3xl transition duration-500 text-center py-10 px-6 mx-4">
+                <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 md:p-10 text-center animate-fade-in-up">
                   <img
                     src={t.image_url || '/default-avatar.png'}
                     alt={t.name}
                     className="mx-auto rounded-full border-4 border-green-400 shadow-md mb-6"
                     style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.src = '/default-avatar.png';
+                    }}
                   />
                   <h5 className="text-xl font-bold mb-2 text-[#017DB9]">{t.name}</h5>
-                  <p className="text-gray-700 text-md">{t.message}</p>
+                  <p className="text-gray-700 text-base leading-relaxed max-w-xl mx-auto">
+                    {t.message}
+                  </p>
                 </div>
               </SwiperSlide>
             ))}
           </Swiper>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 
